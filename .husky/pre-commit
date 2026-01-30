@@ -1,13 +1,10 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 echo "🔍 Running pre-commit checks..."
 
 # Run lint-staged
-npx lint-staged
+pnpm lint-staged
 
 # Run type check
 echo "🔍 Running type check..."
-npm run type-check
+pnpm run type-check
 
 echo "✅ Pre-commit checks passed!"
