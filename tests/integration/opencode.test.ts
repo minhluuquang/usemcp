@@ -50,7 +50,7 @@ describe('Integration Tests - OpenCode Adapter', () => {
     it('should prefer opencode.jsonc if it exists', () => {
       // Create opencode.jsonc
       writeFileSync(join(tempDir, 'opencode.jsonc'), '{}');
-      
+
       const path = opencodeAdapter.getConfigPath('project', tempDir);
       expect(path).toBe(join(tempDir, 'opencode.jsonc'));
     });
@@ -145,10 +145,10 @@ describe('Integration Tests - OpenCode Adapter', () => {
       await opencodeAdapter.addServer('project', tempDir, stdioServer, {});
 
       const content = readFileSync(configPath, 'utf-8');
-      
+
       // Should preserve comment
       expect(content).toContain('// Model configuration');
-      
+
       // Should have added server
       expect(content).toContain('filesystem');
     });
@@ -190,7 +190,11 @@ describe('Integration Tests - OpenCode Adapter', () => {
 
       expect(roundTripped.transport.type).toBe('stdio');
       expect(roundTripped.transport.command).toBe('npx');
-      expect(roundTripped.transport.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem', '/tmp']);
+      expect(roundTripped.transport.args).toEqual([
+        '-y',
+        '@modelcontextprotocol/server-filesystem',
+        '/tmp',
+      ]);
     });
 
     it('should correctly round-trip remote (http) config', async () => {

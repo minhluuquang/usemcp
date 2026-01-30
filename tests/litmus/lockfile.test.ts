@@ -95,7 +95,7 @@ describe('Litmus Tests - Lock File Operations', () => {
 
       writeLockFile(lock);
       const read = readLockFile();
-      
+
       expect(read.version).toBe(1);
       expect(read.servers['test/server']).toBeDefined();
     });
@@ -116,12 +116,9 @@ describe('Litmus Tests - Lock File Operations', () => {
     });
 
     it('should list all lock entries', () => {
-      addLockEntry(
-        'server1',
-        { type: 'registry', url: 'https://registry.mcp.io' },
-        testServer,
-        [{ agent: 'claude-code', scope: 'project', installedName: 'server1' }]
-      );
+      addLockEntry('server1', { type: 'registry', url: 'https://registry.mcp.io' }, testServer, [
+        { agent: 'claude-code', scope: 'project', installedName: 'server1' },
+      ]);
 
       const differentServer: NormalizedServer = {
         ...testServer,
@@ -137,7 +134,7 @@ describe('Litmus Tests - Lock File Operations', () => {
 
       const entries = listLockEntries();
       expect(entries).toHaveLength(2);
-      expect(entries.map((e) => e.serverId).sort()).toEqual(['server1', 'server2']);
+      expect(entries.map(e => e.serverId).sort()).toEqual(['server1', 'server2']);
     });
 
     it('should remove lock entry', () => {

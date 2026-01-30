@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir, homedir, platform } from 'os';
-import { claudeDesktopAdapter, normalizedToDesktopConfig, desktopConfigToNormalized } from '../../src/agents/claude-desktop.ts';
+import {
+  claudeDesktopAdapter,
+  normalizedToDesktopConfig,
+  desktopConfigToNormalized,
+} from '../../src/agents/claude-desktop.ts';
 import type { NormalizedServer } from '../../src/types.ts';
 
 describe('Integration Tests - Claude Desktop Adapter', () => {
@@ -23,11 +27,11 @@ describe('Integration Tests - Claude Desktop Adapter', () => {
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'claude-desktop-test-'));
-    
+
     // Create mock Claude Desktop config directory
     const mockConfigDir = join(tempDir, 'Library/Application Support/Claude');
     mkdirSync(mockConfigDir, { recursive: true });
-    
+
     // Override the config path for testing
     process.env.CLAUDE_DESKTOP_CONFIG_DIR = mockConfigDir;
   });
@@ -65,7 +69,7 @@ describe('Integration Tests - Claude Desktop Adapter', () => {
       // We need to use a mock since we can't easily override the hardcoded path
       // For now, just test that the adapter generates correct config format
       const config = normalizedToDesktopConfig(stdioServer);
-      
+
       expect(config).toMatchObject({
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp'],
@@ -95,7 +99,7 @@ describe('Integration Tests - Claude Desktop Adapter', () => {
   describe('Config Format', () => {
     it('should generate correct mcpServers structure', () => {
       const config = normalizedToDesktopConfig(stdioServer);
-      
+
       // Claude Desktop format is simpler - no type field, just command/args/env
       expect(config.command).toBe('npx');
       expect(config.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem', '/tmp']);

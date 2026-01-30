@@ -70,8 +70,10 @@ describe('Smoke Tests - Add Command', () => {
     it('should parse multiple flags together', () => {
       const { source, options } = parseAddOptions([
         'my-server',
-        '--agent', 'claude-code',
-        '--scope', 'user',
+        '--agent',
+        'claude-code',
+        '--scope',
+        'user',
         '--yes',
       ]);
       expect(source).toBe('my-server');

@@ -39,7 +39,7 @@ function normalizedToClaudeConfig(server: NormalizedServer): Record<string, unkn
 
 function claudeConfigToNormalized(name: string, config: Record<string, unknown>): NormalizedServer {
   const transportType = config.type as 'stdio' | 'http' | 'sse';
-  
+
   let transport;
   if (transportType === 'stdio') {
     transport = {
@@ -89,14 +89,14 @@ export const claudeCodeAdapter: AgentAdapter = {
 
   async readConfig(scope: Scope, cwd: string): Promise<ParsedConfig> {
     const configPath = this.getConfigPath(scope, cwd);
-    
+
     if (!existsSync(configPath)) {
       return { servers: {}, raw: '{}' };
     }
 
     const content = readFileSync(configPath, 'utf-8');
     let parsed: Record<string, unknown>;
-    
+
     try {
       parsed = JSON.parse(content);
     } catch {
@@ -104,20 +104,20 @@ export const claudeCodeAdapter: AgentAdapter = {
     }
 
     const mcpServers = (parsed.mcpServers as Record<string, unknown>) || {};
-    
+
     return { servers: mcpServers, raw: content };
   },
 
   async writeConfig(scope: Scope, cwd: string, servers: Record<string, unknown>): Promise<void> {
     const configPath = this.getConfigPath(scope, cwd);
     const dir = scope === 'project' ? cwd : CLAUDE_CONFIG_DIR;
-    
+
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
 
     let config: Record<string, unknown> = {};
-    
+
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, 'utf-8');
@@ -128,13 +128,13 @@ export const claudeCodeAdapter: AgentAdapter = {
     }
 
     config.mcpServers = servers;
-    
+
     writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
   },
 
   async listInstalled(scope: Scope, cwd: string): Promise<InstalledServer[]> {
     const { servers } = await this.readConfig(scope, cwd);
-    
+
     return Object.entries(servers).map(([name, serverConfig]) => {
       try {
         // Convert Claude Code config format back to normalized server
@@ -163,15 +163,15 @@ export const claudeCodeAdapter: AgentAdapter = {
   ): Promise<void> {
     const { servers } = await this.readConfig(scope, cwd);
     const serverName = server.id.split('/').pop() || server.id;
-    
+
     // Convert normalized server to Claude Code format
     const claudeConfig = normalizedToClaudeConfig(server);
-    
+
     const newServers = {
       ...servers,
       [serverName]: claudeConfig,
     };
-    
+
     await this.writeConfig(scope, cwd, newServers);
   },
 

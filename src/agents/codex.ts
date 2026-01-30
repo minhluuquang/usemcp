@@ -47,7 +47,7 @@ function normalizedToCodexConfig(server: NormalizedServer): CodexServerConfig {
   } else {
     // http or sse
     config.url = server.transport.url;
-    
+
     // Handle authentication
     if (server.transport.headers) {
       const authHeader = server.transport.headers['Authorization'];
@@ -72,14 +72,14 @@ function normalizedToCodexConfig(server: NormalizedServer): CodexServerConfig {
 
 function codexConfigToNormalized(name: string, config: CodexServerConfig): NormalizedServer {
   let transport;
-  
+
   if (config.url) {
     // HTTP/SSE transport
     const headers: Record<string, string> = {};
     if (config.auth?.token) {
       headers['Authorization'] = `Bearer ${config.auth.token}`;
     }
-    
+
     transport = {
       type: 'http' as const,
       url: config.url,
@@ -122,14 +122,14 @@ export const codexAdapter: AgentAdapter = {
 
   async readConfig(scope: Scope, cwd: string): Promise<ParsedConfig> {
     const configPath = this.getConfigPath(scope, cwd);
-    
+
     if (!existsSync(configPath)) {
       return { servers: {}, raw: '' };
     }
 
     const content = readFileSync(configPath, 'utf-8');
     let parsed: CodexConfig;
-    
+
     try {
       parsed = TOML.parse(content) as CodexConfig;
     } catch {
@@ -137,20 +137,20 @@ export const codexAdapter: AgentAdapter = {
     }
 
     const mcpServers = parsed.mcp_servers || {};
-    
+
     return { servers: mcpServers, raw: content };
   },
 
   async writeConfig(scope: Scope, cwd: string, servers: Record<string, unknown>): Promise<void> {
     const configPath = this.getConfigPath(scope, cwd);
     const dir = scope === 'project' ? join(cwd, '.codex') : CODEX_HOME;
-    
+
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
 
     let config: CodexConfig = {};
-    
+
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, 'utf-8');
@@ -161,13 +161,13 @@ export const codexAdapter: AgentAdapter = {
     }
 
     config.mcp_servers = servers as Record<string, CodexServerConfig>;
-    
+
     writeFileSync(configPath, TOML.stringify(config as unknown as TOML.JsonMap), 'utf-8');
   },
 
   async listInstalled(scope: Scope, cwd: string): Promise<InstalledServer[]> {
     const { servers } = await this.readConfig(scope, cwd);
-    
+
     return Object.entries(servers).map(([name, serverConfig]) => {
       try {
         const normalized = codexConfigToNormalized(name, serverConfig as CodexServerConfig);
@@ -194,14 +194,14 @@ export const codexAdapter: AgentAdapter = {
   ): Promise<void> {
     const { servers } = await this.readConfig(scope, cwd);
     const serverName = server.id.split('/').pop() || server.id;
-    
+
     const codexConfig = normalizedToCodexConfig(server);
-    
+
     const newServers = {
       ...servers,
       [serverName]: codexConfig,
     };
-    
+
     await this.writeConfig(scope, cwd, newServers);
   },
 

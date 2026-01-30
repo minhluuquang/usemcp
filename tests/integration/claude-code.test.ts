@@ -134,8 +134,8 @@ describe('Integration Tests - Claude Code Adapter', () => {
 
       const installed = await claudeCodeAdapter.listInstalled('project', tempDir);
       expect(installed).toHaveLength(2);
-      
-      const names = installed.map((s) => s.name).sort();
+
+      const names = installed.map(s => s.name).sort();
       expect(names).toEqual(['filesystem', 'mcp']);
     });
 

@@ -41,7 +41,7 @@ describe('Litmus Tests - Config File Operations', () => {
 
     it('should write and read config', async () => {
       await claudeCodeAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const config = await claudeCodeAdapter.readConfig('project', tempDir);
       expect(config.servers).toHaveProperty('server');
       expect(config.servers['server']).toMatchObject({
@@ -54,7 +54,7 @@ describe('Litmus Tests - Config File Operations', () => {
 
     it('should list installed servers', async () => {
       await claudeCodeAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const installed = await claudeCodeAdapter.listInstalled('project', tempDir);
       expect(installed).toHaveLength(1);
       expect(installed[0]!.name).toBe('server');
@@ -63,21 +63,21 @@ describe('Litmus Tests - Config File Operations', () => {
     it('should remove server', async () => {
       await claudeCodeAdapter.addServer('project', tempDir, testServer, {});
       await claudeCodeAdapter.removeServer('project', tempDir, 'server');
-      
+
       const config = await claudeCodeAdapter.readConfig('project', tempDir);
       expect(config.servers).not.toHaveProperty('server');
     });
 
     it('should preserve other config when removing server', async () => {
       await claudeCodeAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const configPath = claudeCodeAdapter.getConfigPath('project', tempDir);
       const existingConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
       existingConfig.otherKey = 'otherValue';
       writeFileSync(configPath, JSON.stringify(existingConfig, null, 2));
-      
+
       await claudeCodeAdapter.removeServer('project', tempDir, 'server');
-      
+
       const finalConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
       expect(finalConfig.otherKey).toBe('otherValue');
     });
@@ -86,20 +86,20 @@ describe('Litmus Tests - Config File Operations', () => {
   describe('Codex Adapter', () => {
     it('should write and read TOML config', async () => {
       await codexAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const configPath = codexAdapter.getConfigPath('project', tempDir);
       expect(existsSync(configPath)).toBe(true);
-      
+
       const config = await codexAdapter.readConfig('project', tempDir);
       expect(config.servers).toHaveProperty('server');
     });
 
     it('should preserve TOML structure', async () => {
       await codexAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const configPath = codexAdapter.getConfigPath('project', tempDir);
       const content = readFileSync(configPath, 'utf-8');
-      
+
       // Should be valid TOML with mcp_servers section
       const parsed = TOML.parse(content);
       expect(parsed).toHaveProperty('mcp_servers');
@@ -109,7 +109,7 @@ describe('Litmus Tests - Config File Operations', () => {
   describe('OpenCode Adapter', () => {
     it('should write and read JSON config', async () => {
       await opencodeAdapter.addServer('project', tempDir, testServer, {});
-      
+
       const config = await opencodeAdapter.readConfig('project', tempDir);
       expect(config.servers).toHaveProperty('server');
       expect(config.servers['server']).toMatchObject({
@@ -132,7 +132,7 @@ describe('Litmus Tests - Config File Operations', () => {
       };
 
       await opencodeAdapter.addServer('project', tempDir, httpServer, {});
-      
+
       const config = await opencodeAdapter.readConfig('project', tempDir);
       expect(config.servers['http-server']).toMatchObject({
         type: 'remote',

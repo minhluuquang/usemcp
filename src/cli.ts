@@ -36,7 +36,7 @@ const LOGO_LINES = [
 
 function showLogo(): void {
   console.log();
-  LOGO_LINES.forEach((line) => {
+  LOGO_LINES.forEach(line => {
     console.log(pc.cyan(line));
   });
 }
@@ -46,11 +46,19 @@ function showBanner(): void {
   console.log();
   console.log(pc.dim('MCP Server Installer CLI'));
   console.log();
-  console.log(`  ${pc.dim('$')}${pc.white(' mcp add')} ${pc.dim('<source>')}     ${pc.dim('Add an MCP server')}`);
-  console.log(`  ${pc.dim('$')}${pc.white(' mcp list')}            ${pc.dim('List installed servers')}`);
-  console.log(`  ${pc.dim('$')}${pc.white(' mcp remove')} ${pc.dim('<name>')}     ${pc.dim('Remove a server')}`);
+  console.log(
+    `  ${pc.dim('$')}${pc.white(' mcp add')} ${pc.dim('<source>')}     ${pc.dim('Add an MCP server')}`
+  );
+  console.log(
+    `  ${pc.dim('$')}${pc.white(' mcp list')}            ${pc.dim('List installed servers')}`
+  );
+  console.log(
+    `  ${pc.dim('$')}${pc.white(' mcp remove')} ${pc.dim('<name>')}     ${pc.dim('Remove a server')}`
+  );
   console.log(`  ${pc.dim('$')}${pc.white(' mcp check')}           ${pc.dim('Check for updates')}`);
-  console.log(`  ${pc.dim('$')}${pc.white(' mcp update')}          ${pc.dim('Update all servers')}`);
+  console.log(
+    `  ${pc.dim('$')}${pc.white(' mcp update')}          ${pc.dim('Update all servers')}`
+  );
   console.log();
 }
 

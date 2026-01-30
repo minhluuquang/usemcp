@@ -27,7 +27,7 @@ describe('Litmus Tests - Agent Adapters', () => {
 
         it('should have at least one supported scope', () => {
           expect(adapter.supportedScopes.length).toBeGreaterThan(0);
-          
+
           for (const scope of adapter.supportedScopes) {
             expect(['project', 'user']).toContain(scope);
           }
@@ -41,7 +41,7 @@ describe('Litmus Tests - Agent Adapters', () => {
         });
 
         it('should have unique id', () => {
-          const adaptersWithSameId = adapterList.filter((a) => a.id === adapter.id);
+          const adaptersWithSameId = adapterList.filter(a => a.id === adapter.id);
           expect(adaptersWithSameId.length).toBe(1);
         });
       });

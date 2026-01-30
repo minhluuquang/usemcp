@@ -69,7 +69,7 @@ function opencodeConfigToNormalized(name: string, config: OpencodeServerConfig):
   if (config.type === 'local') {
     const command = config.command?.[0] || '';
     const args = config.command?.slice(1) || [];
-    
+
     transport = {
       type: 'stdio' as const,
       command,
@@ -107,7 +107,7 @@ export const opencodeAdapter: AgentAdapter = {
       // Check for both .json and .jsonc
       const jsonPath = join(cwd, 'opencode.json');
       const jsoncPath = join(cwd, 'opencode.jsonc');
-      
+
       if (existsSync(jsoncPath)) {
         return jsoncPath;
       }
@@ -118,14 +118,14 @@ export const opencodeAdapter: AgentAdapter = {
 
   async readConfig(scope: Scope, cwd: string): Promise<ParsedConfig> {
     const configPath = this.getConfigPath(scope, cwd);
-    
+
     if (!existsSync(configPath)) {
       return { servers: {}, raw: '{}' };
     }
 
     const content = readFileSync(configPath, 'utf-8');
     let parsed: OpencodeConfig;
-    
+
     try {
       parsed = commentJson.parse(content) as OpencodeConfig;
     } catch {
@@ -133,20 +133,20 @@ export const opencodeAdapter: AgentAdapter = {
     }
 
     const mcpServers = parsed.mcp?.servers || {};
-    
+
     return { servers: mcpServers, raw: content };
   },
 
   async writeConfig(scope: Scope, cwd: string, servers: Record<string, unknown>): Promise<void> {
     const configPath = this.getConfigPath(scope, cwd);
     const dir = scope === 'project' ? cwd : OPENCODE_CONFIG_DIR;
-    
+
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
 
     let config: OpencodeConfig = {};
-    
+
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, 'utf-8');
@@ -160,19 +160,16 @@ export const opencodeAdapter: AgentAdapter = {
       config.mcp = {};
     }
     config.mcp.servers = servers as Record<string, OpencodeServerConfig>;
-    
+
     writeFileSync(configPath, commentJson.stringify(config, null, 2), 'utf-8');
   },
 
   async listInstalled(scope: Scope, cwd: string): Promise<InstalledServer[]> {
     const { servers } = await this.readConfig(scope, cwd);
-    
+
     return Object.entries(servers).map(([name, serverConfig]) => {
       try {
-        const normalized = opencodeConfigToNormalized(
-          name,
-          serverConfig as OpencodeServerConfig
-        );
+        const normalized = opencodeConfigToNormalized(name, serverConfig as OpencodeServerConfig);
         return { name, server: normalized };
       } catch {
         return {
@@ -196,14 +193,14 @@ export const opencodeAdapter: AgentAdapter = {
   ): Promise<void> {
     const { servers } = await this.readConfig(scope, cwd);
     const serverName = server.id.split('/').pop() || server.id;
-    
+
     const opencodeConfig = normalizedToOpencodeConfig(server);
-    
+
     const newServers = {
       ...servers,
       [serverName]: opencodeConfig,
     };
-    
+
     await this.writeConfig(scope, cwd, newServers);
   },
 

@@ -15,12 +15,12 @@ export const adapterList = Object.values(adapters);
 
 export async function detectInstalledAdapters(): Promise<AgentAdapter[]> {
   const results = await Promise.all(
-    adapterList.map(async (adapter) => ({
+    adapterList.map(async adapter => ({
       adapter,
       installed: await adapter.detectInstalled(),
     }))
   );
-  return results.filter((r) => r.installed).map((r) => r.adapter);
+  return results.filter(r => r.installed).map(r => r.adapter);
 }
 
 export function getAdapter(id: string): AgentAdapter | undefined {

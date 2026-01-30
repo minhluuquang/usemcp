@@ -24,7 +24,9 @@ export async function runCheck(): Promise<void> {
     console.log(`  ${pc.cyan(entry.serverId)}`);
     console.log(`    ${pc.dim('Source:')} ${entry.source.type} - ${entry.source.url}`);
     console.log(`    ${pc.dim('Installed:')} ${new Date(entry.installedAt).toLocaleDateString()}`);
-    console.log(`    ${pc.dim('Targets:')} ${entry.targets.map((t) => `${t.agent} (${t.scope})`).join(', ')}`);
+    console.log(
+      `    ${pc.dim('Targets:')} ${entry.targets.map(t => `${t.agent} (${t.scope})`).join(', ')}`
+    );
     console.log();
   }
 

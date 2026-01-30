@@ -66,15 +66,10 @@ describe('Smoke Tests - Check Command', () => {
       id: 'server2',
     };
 
-    addLockEntry(
-      'server2',
-      { type: 'git', url: 'https://github.com/user/repo' },
-      server2,
-      [
-        { agent: 'claude-code', scope: 'project', installedName: 'server2' },
-        { agent: 'codex', scope: 'project', installedName: 'server2' },
-      ]
-    );
+    addLockEntry('server2', { type: 'git', url: 'https://github.com/user/repo' }, server2, [
+      { agent: 'claude-code', scope: 'project', installedName: 'server2' },
+      { agent: 'codex', scope: 'project', installedName: 'server2' },
+    ]);
 
     const logs: string[] = [];
     const originalLog = console.log;

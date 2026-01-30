@@ -18,7 +18,7 @@ export function parseRemoveOptions(args: string[]): { servers: string[]; options
         break;
       case '-a':
       case '--agent':
-        options.agents = args[++i]?.split(',').map((a) => a.trim());
+        options.agents = args[++i]?.split(',').map(a => a.trim());
         break;
       case '-y':
       case '--yes':
@@ -43,12 +43,12 @@ export async function runRemove(serverNames: string[], options: RemoveOptions): 
   let agentsToTarget = adapterList;
   if (options.agents) {
     agentsToTarget = options.agents
-      .map((id) => getAdapter(id))
+      .map(id => getAdapter(id))
       .filter((a): a is NonNullable<typeof a> => a !== undefined);
   }
 
   // Collect all installed servers from target agents
-  const allInstalled: Array<{ agent: typeof adapterList[0]; server: InstalledServer }> = [];
+  const allInstalled: Array<{ agent: (typeof adapterList)[0]; server: InstalledServer }> = [];
 
   for (const agent of agentsToTarget) {
     if (!agent.supportedScopes.includes(scope)) {
@@ -66,7 +66,7 @@ export async function runRemove(serverNames: string[], options: RemoveOptions): 
   }
 
   // If no servers specified, show interactive selection
-  let serversToRemove: Array<{ agent: typeof adapterList[0]; server: InstalledServer }> = [];
+  let serversToRemove: Array<{ agent: (typeof adapterList)[0]; server: InstalledServer }> = [];
 
   if (serverNames.length === 0) {
     if (allInstalled.length === 0) {
@@ -112,7 +112,7 @@ export async function runRemove(serverNames: string[], options: RemoveOptions): 
 
   // Show removal summary
   console.log(pc.bold('\nServers to remove:\n'));
-  
+
   for (const { agent, server } of serversToRemove) {
     console.log(`  ${pc.red('✗')} ${pc.cyan(server.name)} ${pc.dim(`(${agent.displayName})`)}`);
   }
@@ -131,8 +131,8 @@ export async function runRemove(serverNames: string[], options: RemoveOptions): 
   }
 
   // Group by agent and remove
-  const byAgent = new Map<typeof adapterList[0], string[]>();
-  
+  const byAgent = new Map<(typeof adapterList)[0], string[]>();
+
   for (const { agent, server } of serversToRemove) {
     const list = byAgent.get(agent) || [];
     list.push(server.name);
@@ -146,11 +146,13 @@ export async function runRemove(serverNames: string[], options: RemoveOptions): 
       try {
         await agent.removeServer(scope, cwd, name);
         console.log(`  ${pc.green('✓')} Removed ${name}`);
-        
+
         // Update lock file
         removeLockEntry(name);
       } catch (error) {
-        console.log(`  ${pc.red('✗')} Failed to remove ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.log(
+          `  ${pc.red('✗')} Failed to remove ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
   }

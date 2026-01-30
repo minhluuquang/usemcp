@@ -12,7 +12,7 @@ import type {
 
 function getClaudeDesktopConfigPath(): string {
   const plat = platform();
-  
+
   if (plat === 'darwin') {
     return join(homedir(), 'Library/Application Support/Claude/claude_desktop_config.json');
   } else if (plat === 'win32') {
@@ -43,7 +43,10 @@ export function normalizedToDesktopConfig(server: NormalizedServer): Record<stri
   return config;
 }
 
-export function desktopConfigToNormalized(name: string, config: Record<string, unknown>): NormalizedServer {
+export function desktopConfigToNormalized(
+  name: string,
+  config: Record<string, unknown>
+): NormalizedServer {
   return {
     id: name,
     displayName: name,
@@ -77,14 +80,14 @@ export const claudeDesktopAdapter: AgentAdapter = {
 
   async readConfig(scope: Scope, cwd: string): Promise<ParsedConfig> {
     const configPath = this.getConfigPath(scope, cwd);
-    
+
     if (!existsSync(configPath)) {
       return { servers: {}, raw: '{}' };
     }
 
     const content = readFileSync(configPath, 'utf-8');
     let parsed: Record<string, unknown>;
-    
+
     try {
       parsed = JSON.parse(content);
     } catch {
@@ -92,20 +95,20 @@ export const claudeDesktopAdapter: AgentAdapter = {
     }
 
     const mcpServers = (parsed.mcpServers as Record<string, unknown>) || {};
-    
+
     return { servers: mcpServers, raw: content };
   },
 
   async writeConfig(scope: Scope, cwd: string, servers: Record<string, unknown>): Promise<void> {
     const configPath = this.getConfigPath(scope, cwd);
     const dir = join(configPath, '..');
-    
+
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
 
     let config: Record<string, unknown> = {};
-    
+
     if (existsSync(configPath)) {
       try {
         const content = readFileSync(configPath, 'utf-8');
@@ -116,13 +119,13 @@ export const claudeDesktopAdapter: AgentAdapter = {
     }
 
     config.mcpServers = servers;
-    
+
     writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
   },
 
   async listInstalled(scope: Scope, cwd: string): Promise<InstalledServer[]> {
     const { servers } = await this.readConfig(scope, cwd);
-    
+
     return Object.entries(servers).map(([name, serverConfig]) => {
       try {
         const normalized = desktopConfigToNormalized(name, serverConfig as Record<string, unknown>);
@@ -155,14 +158,14 @@ export const claudeDesktopAdapter: AgentAdapter = {
 
     const { servers } = await this.readConfig(scope, cwd);
     const serverName = server.id.split('/').pop() || server.id;
-    
+
     const desktopConfig = normalizedToDesktopConfig(server);
-    
+
     const newServers = {
       ...servers,
       [serverName]: desktopConfig,
     };
-    
+
     await this.writeConfig(scope, cwd, newServers);
   },
 

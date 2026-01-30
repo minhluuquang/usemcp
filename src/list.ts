@@ -16,7 +16,7 @@ export function parseListOptions(args: string[]): ListOptions {
         break;
       case '-a':
       case '--agent':
-        options.agents = args[++i]?.split(',').map((a) => a.trim());
+        options.agents = args[++i]?.split(',').map(a => a.trim());
         break;
     }
   }
@@ -32,7 +32,7 @@ export async function runList(options: ListOptions): Promise<void> {
   let agentsToQuery = adapterList;
   if (options.agents) {
     agentsToQuery = options.agents
-      .map((id) => getAdapter(id))
+      .map(id => getAdapter(id))
       .filter((a): a is NonNullable<typeof a> => a !== undefined);
   }
 
@@ -47,7 +47,7 @@ export async function runList(options: ListOptions): Promise<void> {
 
     try {
       const installed = await agent.listInstalled(scope, cwd);
-      
+
       if (installed.length === 0) {
         continue;
       }
@@ -68,14 +68,16 @@ export async function runList(options: ListOptions): Promise<void> {
           console.log(`    ${pc.dim(server.description)}`);
         }
         console.log(`    ${pc.dim('Transport:')} ${server.transport.type}`);
-        
+
         if (server.transport.type === 'stdio') {
           const cmd = `${server.transport.command} ${server.transport.args.join(' ')}`;
-          console.log(`    ${pc.dim('Command:')} ${cmd.slice(0, 60)}${cmd.length > 60 ? '...' : ''}`);
+          console.log(
+            `    ${pc.dim('Command:')} ${cmd.slice(0, 60)}${cmd.length > 60 ? '...' : ''}`
+          );
         } else {
           console.log(`    ${pc.dim('URL:')} ${server.transport.url}`);
         }
-        
+
         totalServers++;
       }
     } catch (error) {

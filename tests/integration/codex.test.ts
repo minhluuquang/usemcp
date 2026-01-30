@@ -158,7 +158,11 @@ args = []
 
       expect(roundTripped.transport.type).toBe('stdio');
       expect(roundTripped.transport.command).toBe('npx');
-      expect(roundTripped.transport.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem', '/tmp']);
+      expect(roundTripped.transport.args).toEqual([
+        '-y',
+        '@modelcontextprotocol/server-filesystem',
+        '/tmp',
+      ]);
     });
   });
 });

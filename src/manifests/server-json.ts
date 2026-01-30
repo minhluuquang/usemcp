@@ -104,7 +104,7 @@ export function normalizeServerJson(manifest: ServerJsonManifest): NormalizedSer
     description: manifest.description,
     transport,
     secrets:
-      manifest.secrets?.map((s) => ({
+      manifest.secrets?.map(s => ({
         name: s.name,
         description: s.description,
         required: s.required ?? true,
