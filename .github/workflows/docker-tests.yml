@@ -21,7 +21,7 @@ jobs:
       - name: Build and run Docker test
         working-directory: tests/docker
         run: |
-          docker-compose -f docker-compose.test.yml up --build --exit-code-from mcp-test
+          docker compose -f docker-compose.test.yml up --build --exit-code-from mcp-test
 
   docker-real-agents-test:
     name: Docker Test with Playwright MCP
@@ -36,15 +36,15 @@ jobs:
       - name: Build Docker image
         working-directory: tests/docker
         run: |
-          docker-compose -f docker-compose.test.yml build
+          docker compose -f docker-compose.test.yml build
 
       - name: Run real agent test
         working-directory: tests/docker
         run: |
-          docker-compose -f docker-compose.test.yml up --exit-code-from mcp-test
+          docker compose -f docker-compose.test.yml up --exit-code-from mcp-test
 
       - name: Cleanup
         if: always()
         working-directory: tests/docker
         run: |
-          docker-compose -f docker-compose.test.yml down -v
+          docker compose -f docker-compose.test.yml down -v
