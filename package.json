@@ -36,11 +36,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vercel-labs/mcp.git"
+    "url": "git+https://github.com/minhluuquang/usemcp.git"
   },
-  "homepage": "https://github.com/vercel-labs/mcp#readme",
+  "homepage": "https://github.com/minhluuquang/usemcp#readme",
   "bugs": {
-    "url": "https://github.com/vercel-labs/mcp/issues"
+    "url": "https://github.com/minhluuquang/usemcp/issues"
   },
   "author": "",
   "license": "MIT",
