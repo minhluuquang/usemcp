@@ -1,8 +1,8 @@
 # MCP Installer CLI
 
-[![CI](https://github.com/vercel-labs/mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/vercel-labs/mcp/actions/workflows/ci.yml)
-[![Docker Tests](https://github.com/vercel-labs/mcp/actions/workflows/docker-tests.yml/badge.svg)](https://github.com/vercel-labs/mcp/actions/workflows/docker-tests.yml)
-[![Cross-Platform](https://github.com/vercel-labs/mcp/actions/workflows/cross-platform.yml/badge.svg)](https://github.com/vercel-labs/mcp/actions/workflows/cross-platform.yml)
+[![CI](https://github.com/minhluuquang/usemcp/actions/workflows/ci.yml/badge.svg)](https://github.com/minhluuquang/usemcp/actions/workflows/ci.yml)
+[![Docker Tests](https://github.com/minhluuquang/usemcp/actions/workflows/docker-tests.yml/badge.svg)](https://github.com/minhluuquang/usemcp/actions/workflows/docker-tests.yml)
+[![Cross-Platform](https://github.com/minhluuquang/usemcp/actions/workflows/cross-platform.yml/badge.svg)](https://github.com/minhluuquang/usemcp/actions/workflows/cross-platform.yml)
 
 A `skills`-style installer CLI for MCP server configs. Supports Claude Code, Claude Desktop, Codex, and OpenCode.
 
