@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mcp-real-test:
+    build:
+      context: ../..
+      dockerfile: tests/docker/Dockerfile.real-agents
+    container_name: mcp-real-agents-test
+    volumes:
+      - ../../:/app
+      - mcp-test-data:/home/testuser
+    environment:
+      - NODE_ENV=test
+      - HOME=/home/testuser
+    stdin_open: true
+    tty: true
+    command: >
+      /bin/bash -c "
+      echo '=== MCP Real Agent Test Environment ===' &&
+      echo '' &&
+      echo 'Installed agents:' &&
+      which claude 2>/dev/null || echo 'Claude Code: checking...' &&
+      which codex 2>/dev/null || echo 'Codex: checking...' &&
+      which opencode 2>/dev/null || echo 'OpenCode: checking...' &&
+      echo '' &&
+      echo 'Testing mcp CLI...' &&
+      cd /app &&
+      node bin/cli.mjs --version &&
+      echo '' &&
+      echo 'Environment ready. Run tests with: pnpm test:run'
+      && /bin/bash
+      "
+
+volumes:
+  mcp-test-data:

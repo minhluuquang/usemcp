@@ -1,0 +1,12 @@
+[settings]
+model = "gpt-4"
+temperature = 0.7
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/home/user"]
+env = { DEBUG = "true" }
+
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]

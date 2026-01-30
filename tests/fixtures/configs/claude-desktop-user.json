@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "desktop-server": {
+      "command": "node",
+      "args": ["/path/to/server.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

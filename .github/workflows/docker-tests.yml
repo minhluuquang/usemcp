@@ -1,0 +1,50 @@
+name: Docker Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  docker-linux-test:
+    name: Docker Linux Test with Real Agents
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and run Docker test
+        working-directory: tests/docker
+        run: |
+          docker-compose -f docker-compose.test.yml up --build --exit-code-from mcp-test
+
+  docker-real-agents-test:
+    name: Docker Test with Playwright MCP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        working-directory: tests/docker
+        run: |
+          docker-compose -f docker-compose.test.yml build
+
+      - name: Run real agent test
+        working-directory: tests/docker
+        run: |
+          docker-compose -f docker-compose.test.yml up --exit-code-from mcp-test
+
+      - name: Cleanup
+        if: always()
+        working-directory: tests/docker
+        run: |
+          docker-compose -f docker-compose.test.yml down -v

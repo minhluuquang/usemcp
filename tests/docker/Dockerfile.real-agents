@@ -1,0 +1,48 @@
+# Real Agent Testing Environment
+#
+# This Dockerfile creates a Linux environment with actual MCP clients installed:
+# - Claude Code (npm package)
+# - Codex CLI (npm package)
+# - OpenCode (npm package)
+#
+# Usage:
+#   docker-compose -f docker-compose.real-agents.yml up --build
+
+FROM node:20-slim
+
+# Install required tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser
+USER testuser
+WORKDIR /home/testuser
+
+# Install global npm packages for MCP clients
+RUN npm install -g \
+    @anthropic-ai/claude-code \
+    @openai/codex \
+    opencode
+
+# Create project directory
+RUN mkdir -p /home/testuser/test-project
+WORKDIR /home/testuser/test-project
+
+# Copy the mcp CLI
+COPY --chown=testuser:testuser package.json pnpm-lock.yaml ./
+COPY --chown=testuser:testuser dist ./dist
+COPY --chown=testuser:testuser bin ./bin
+
+# Install mcp CLI dependencies
+RUN npm install
+
+# Set up test environment
+ENV HOME=/home/testuser
+ENV PATH="/home/testuser/.local/bin:${PATH}"
+
+# Default command runs tests
+CMD ["/bin/bash"]

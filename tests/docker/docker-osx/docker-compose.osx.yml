@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  macos-test:
+    build:
+      context: ../../..
+      dockerfile: tests/docker/docker-osx/Dockerfile.osx
+    container_name: docker-osx-macos
+    environment:
+      - USERNAME=user
+      - PASSWORD=alpine
+      # Optional: Auto-run commands after boot
+      # - OSX_COMMANDS="cd /app && pnpm test:run"
+    volumes:
+      - ../../../:/app
+      - ./macos-test-data:/home/user/mcp-test
+    devices:
+      - /dev/kvm
+    ports:
+      - "50922:10022"
+    privileged: true
+    # macOS requires significant resources
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G

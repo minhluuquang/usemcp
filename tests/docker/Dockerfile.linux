@@ -1,0 +1,54 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install required tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser
+
+# Switch to test user for npm global installs
+USER testuser
+ENV HOME=/home/testuser
+ENV PATH="/home/testuser/.npm-global/bin:${PATH}"
+
+# Configure npm to use user directory for global packages
+RUN mkdir -p ~/.npm-global && npm config set prefix '~/.npm-global'
+
+# Install real MCP clients globally
+RUN npm install -g \
+    @anthropic-ai/claude-code \
+    @openai/codex \
+    opencode-ai
+
+# Switch back to root for app installation
+USER root
+WORKDIR /app
+
+# Copy package.json
+COPY package.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the project
+RUN npm run build
+
+# Copy and set up test script
+COPY tests/docker/test-real-agents.sh /usr/local/bin/test-real-agents.sh
+RUN chmod +x /usr/local/bin/test-real-agents.sh
+
+# Switch to test user for running tests
+USER testuser
+ENV HOME=/home/testuser
+
+# Default command runs the real agent test
+CMD ["bash", "/usr/local/bin/test-real-agents.sh"]

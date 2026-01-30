@@ -1,0 +1,17 @@
+{
+  "name": "http-api-server",
+  "description": "HTTP-based MCP server",
+  "transport": "http",
+  "url": "https://api.example.com/mcp",
+  "headers": {
+    "Authorization": "Bearer {env:API_TOKEN}",
+    "Content-Type": "application/json"
+  },
+  "secrets": [
+    {
+      "name": "API_TOKEN",
+      "description": "API authentication token",
+      "required": true
+    }
+  ]
+}

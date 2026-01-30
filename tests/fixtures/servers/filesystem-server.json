@@ -1,0 +1,17 @@
+{
+  "name": "filesystem-server",
+  "description": "MCP filesystem server for testing",
+  "transport": "stdio",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+  "env": {
+    "DEBUG": "true"
+  },
+  "secrets": [
+    {
+      "name": "API_KEY",
+      "description": "Optional API key for enhanced features",
+      "required": false
+    }
+  ]
+}

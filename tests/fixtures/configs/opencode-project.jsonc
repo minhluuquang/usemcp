@@ -1,0 +1,25 @@
+{
+  // OpenCode configuration
+  "model": "claude-3-opus",
+  "temperature": 0.7,
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "type": "local",
+        "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/user"],
+        "environment": {
+          "DEBUG": "true"
+        },
+        "enabled": true
+      },
+      "api": {
+        "type": "remote",
+        "url": "https://api.example.com/mcp",
+        "headers": {
+          "Authorization": "Bearer token"
+        },
+        "enabled": true
+      }
+    }
+  }
+}

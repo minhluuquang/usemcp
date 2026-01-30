@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  mcp-test:
+    build:
+      context: ../..
+      dockerfile: tests/docker/Dockerfile.linux
+    container_name: mcp-linux-test
+    volumes:
+      - ../../:/app
+    environment:
+      - NODE_ENV=test

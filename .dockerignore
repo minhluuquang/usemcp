@@ -1,0 +1,10 @@
+node_modules
+pnpm-lock.yaml
+package-lock.json
+.git
+.gitignore
+dist
+*.md
+.DS_Store
+coverage
+.vitest

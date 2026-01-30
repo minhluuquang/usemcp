@@ -1,0 +1,30 @@
+# Docker-OSX macOS Testing Environment
+# 
+# Prerequisites:
+# - Linux host with KVM support enabled
+# - Docker and Docker Compose installed
+# - ~50GB free disk space
+#
+# Note: Docker-OSX runs macOS via QEMU+KVM inside a Docker container.
+# This is primarily for CI/CD environments. For local macOS development,
+# run tests natively with `pnpm test:run`.
+
+FROM sickcodes/docker-osx:naked-auto
+
+# Install Node.js and pnpm
+RUN brew install node pnpm
+
+# Set up working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Run tests
+CMD ["pnpm", "test:run"]
