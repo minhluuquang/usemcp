@@ -2,12 +2,13 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Install required tools
+# Install required tools and pnpm
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     vim \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g pnpm
 
 # Create test user
 RUN useradd -m -s /bin/bash testuser
@@ -30,17 +31,17 @@ RUN npm install -g \
 USER root
 WORKDIR /app
 
-# Copy package.json
-COPY package.json ./
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using pnpm
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
 # Build the project
-RUN npm run build
+RUN pnpm run build
 
 # Copy and set up test script
 COPY tests/docker/test-real-agents.sh /usr/local/bin/test-real-agents.sh
