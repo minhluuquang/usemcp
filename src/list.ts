@@ -46,11 +46,8 @@ export async function runList(options: ListOptions): Promise<void> {
     }
 
     try {
+      const isInstalled = await agent.detectInstalled();
       const installed = await agent.listInstalled(scope, cwd);
-
-      if (installed.length === 0) {
-        continue;
-      }
 
       if (hasOutput) {
         console.log();
@@ -58,27 +55,35 @@ export async function runList(options: ListOptions): Promise<void> {
       hasOutput = true;
 
       const configPath = agent.getConfigPath(scope, cwd);
-      console.log(pc.bold(`${agent.displayName}`));
-      console.log(pc.dim(`  ${configPath}`));
-      console.log();
 
-      for (const { name, server } of installed) {
-        console.log(`  ${pc.cyan(name)}`);
-        if (server.description) {
-          console.log(`    ${pc.dim(server.description)}`);
-        }
-        console.log(`    ${pc.dim('Transport:')} ${server.transport.type}`);
+      if (isInstalled) {
+        console.log(pc.bold(`${agent.displayName}`));
+        console.log(pc.dim(`  ${configPath}`));
 
-        if (server.transport.type === 'stdio') {
-          const cmd = `${server.transport.command} ${server.transport.args.join(' ')}`;
-          console.log(
-            `    ${pc.dim('Command:')} ${cmd.slice(0, 60)}${cmd.length > 60 ? '...' : ''}`
-          );
+        if (installed.length === 0) {
+          console.log();
+          console.log(pc.dim('  No MCP servers installed'));
         } else {
-          console.log(`    ${pc.dim('URL:')} ${server.transport.url}`);
-        }
+          console.log();
+          for (const { name, server } of installed) {
+            console.log(`  ${pc.cyan(name)}`);
+            if (server.description) {
+              console.log(`    ${pc.dim(server.description)}`);
+            }
+            console.log(`    ${pc.dim('Transport:')} ${server.transport.type}`);
 
-        totalServers++;
+            if (server.transport.type === 'stdio') {
+              const cmd = `${server.transport.command} ${server.transport.args.join(' ')}`;
+              console.log(
+                `    ${pc.dim('Command:')} ${cmd.slice(0, 60)}${cmd.length > 60 ? '...' : ''}`
+              );
+            } else {
+              console.log(`    ${pc.dim('URL:')} ${server.transport.url}`);
+            }
+
+            totalServers++;
+          }
+        }
       }
     } catch (error) {
       // Silently skip agents with errors (e.g., config doesn't exist yet)
