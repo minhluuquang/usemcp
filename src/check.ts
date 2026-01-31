@@ -14,8 +14,6 @@ export async function runCheck(): Promise<void> {
     return;
   }
 
-  // For now, just show what we have tracked
-  // In a full implementation, we'd check the registry for updates
   s.stop(`Found ${entries.length} tracked server(s)`);
 
   console.log(pc.bold('\nTracked servers:\n'));
@@ -29,6 +27,4 @@ export async function runCheck(): Promise<void> {
     );
     console.log();
   }
-
-  console.log(pc.dim('Note: Update checking requires registry API integration'));
 }

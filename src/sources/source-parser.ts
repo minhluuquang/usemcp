@@ -2,32 +2,6 @@ import type { SourceInfo, NormalizedServer } from '../types.ts';
 import { parseServerJson } from '../manifests/server-json.ts';
 
 // ============================================
-// Registry Source
-// ============================================
-
-const REGISTRY_BASE_URL = 'https://registry.mcp.io';
-
-export async function fetchFromRegistry(serverId: string): Promise<NormalizedServer> {
-  const url = `${REGISTRY_BASE_URL}/servers/${serverId}/server.json`;
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Registry returned ${response.status}: ${response.statusText}`);
-    }
-
-    const content = await response.text();
-    return parseServerJson(content);
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('fetch')) {
-      throw new Error(`Failed to fetch from registry: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-// ============================================
 // Git Source
 // ============================================
 
@@ -43,7 +17,7 @@ export function parseGitUrl(url: string): { owner: string; repo: string; path?: 
   }
 
   // Handle shorthand like owner/repo
-  const shorthandMatch = url.match(/^([\w-]+)\/([\w-]+)$/);
+  const shorthandMatch = url.match(/^[\w-]+\/[\w-]+$/);
   if (shorthandMatch) {
     return {
       owner: shorthandMatch[1]!,
@@ -181,10 +155,8 @@ export async function parseSource(source: string): Promise<{
     };
   }
 
-  // Assume it's a registry ID
-  const server = await fetchFromRegistry(source);
-  return {
-    sourceInfo: { type: 'registry', url: `${REGISTRY_BASE_URL}/servers/${source}` },
-    servers: [server],
-  };
+  // Unknown source type
+  throw new Error(
+    `Unknown source type: ${source}. Supported formats: local path, GitHub URL (github.com/user/repo or user/repo)`
+  );
 }

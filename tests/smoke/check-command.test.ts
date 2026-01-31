@@ -54,19 +54,16 @@ describe('Smoke Tests - Check Command', () => {
 
   it('should list tracked servers', async () => {
     // Add some lock entries
-    addLockEntry(
-      'server1',
-      { type: 'registry', url: 'https://registry.mcp.io/server1' },
-      testServer,
-      [{ agent: 'claude-code', scope: 'project', installedName: 'server1' }]
-    );
+    addLockEntry('server1', { type: 'git', url: 'https://github.com/user/repo1' }, testServer, [
+      { agent: 'claude-code', scope: 'project', installedName: 'server1' },
+    ]);
 
     const server2: NormalizedServer = {
       ...testServer,
       id: 'server2',
     };
 
-    addLockEntry('server2', { type: 'git', url: 'https://github.com/user/repo' }, server2, [
+    addLockEntry('server2', { type: 'git', url: 'https://github.com/user/repo2' }, server2, [
       { agent: 'claude-code', scope: 'project', installedName: 'server2' },
       { agent: 'codex', scope: 'project', installedName: 'server2' },
     ]);
@@ -82,7 +79,6 @@ describe('Smoke Tests - Check Command', () => {
     const output = logs.join('\n');
     expect(output).toContain('server1');
     expect(output).toContain('server2');
-    expect(output).toContain('registry');
     expect(output).toContain('git');
     expect(output).toContain('claude-code');
     expect(output).toContain('codex');

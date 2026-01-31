@@ -17,7 +17,6 @@ export async function runUpdate(): Promise<void> {
   s.stop(`Found ${entries.length} tracked server(s)`);
 
   console.log(pc.bold('\nUpdate check not yet implemented'));
-  console.log(pc.dim('This feature requires registry API integration'));
   console.log();
   console.log(pc.dim('To update a server, remove and re-add it:'));
   console.log(pc.dim('  usemcps remove <server>'));

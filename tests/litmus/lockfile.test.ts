@@ -84,7 +84,7 @@ describe('Litmus Tests - Lock File Operations', () => {
         servers: {
           'test/server': {
             serverId: 'test/server',
-            source: { type: 'registry', url: 'https://registry.mcp.io' },
+            source: { type: 'git', url: 'https://github.com/user/repo' },
             metadataHash: 'abc123',
             targets: [{ agent: 'claude-code', scope: 'project', installedName: 'server' }],
             installedAt: new Date().toISOString(),
@@ -103,7 +103,7 @@ describe('Litmus Tests - Lock File Operations', () => {
     it('should add lock entry', () => {
       addLockEntry(
         'test/server',
-        { type: 'registry', url: 'https://registry.mcp.io' },
+        { type: 'git', url: 'https://github.com/user/repo' },
         testServer,
         [{ agent: 'claude-code', scope: 'project', installedName: 'server' }]
       );
@@ -111,12 +111,12 @@ describe('Litmus Tests - Lock File Operations', () => {
       const entry = getLockEntry('test/server');
       expect(entry).toBeDefined();
       expect(entry?.serverId).toBe('test/server');
-      expect(entry?.source.type).toBe('registry');
+      expect(entry?.source.type).toBe('git');
       expect(entry?.targets).toHaveLength(1);
     });
 
     it('should list all lock entries', () => {
-      addLockEntry('server1', { type: 'registry', url: 'https://registry.mcp.io' }, testServer, [
+      addLockEntry('server1', { type: 'git', url: 'https://github.com/user/repo1' }, testServer, [
         { agent: 'claude-code', scope: 'project', installedName: 'server1' },
       ]);
 
@@ -140,7 +140,7 @@ describe('Litmus Tests - Lock File Operations', () => {
     it('should remove lock entry', () => {
       addLockEntry(
         'test/server',
-        { type: 'registry', url: 'https://registry.mcp.io' },
+        { type: 'git', url: 'https://github.com/user/repo' },
         testServer,
         [{ agent: 'claude-code', scope: 'project', installedName: 'server' }]
       );
@@ -155,7 +155,7 @@ describe('Litmus Tests - Lock File Operations', () => {
     it('should update existing entry on add', () => {
       addLockEntry(
         'test/server',
-        { type: 'registry', url: 'https://registry.mcp.io' },
+        { type: 'git', url: 'https://github.com/user/repo' },
         testServer,
         [{ agent: 'claude-code', scope: 'project', installedName: 'server' }]
       );
@@ -171,7 +171,7 @@ describe('Litmus Tests - Lock File Operations', () => {
 
       addLockEntry(
         'test/server',
-        { type: 'registry', url: 'https://registry.mcp.io/v2' },
+        { type: 'git', url: 'https://github.com/user/repo2' },
         newServer,
         [
           { agent: 'claude-code', scope: 'project', installedName: 'server' },
@@ -180,7 +180,7 @@ describe('Litmus Tests - Lock File Operations', () => {
       );
 
       const secondEntry = getLockEntry('test/server');
-      expect(secondEntry?.source.url).toBe('https://registry.mcp.io/v2');
+      expect(secondEntry?.source.url).toBe('https://github.com/user/repo2');
       expect(secondEntry?.targets).toHaveLength(2);
       // Note: updatedAt might be the same if operations happen within same millisecond
       // Just verify the entry was updated
