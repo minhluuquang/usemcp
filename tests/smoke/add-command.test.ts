@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs';
+import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { parseAddOptions, runAdd } from '../../src/add.ts';
-import { claudeCodeAdapter } from '../../src/agents/claude-code.ts';
-import type { AddOptions } from '../../src/types.ts';
+import { parseAddOptions } from '../../src/add.ts';
 
 describe('Smoke Tests - Add Command', () => {
   let tempDir: string;
@@ -18,65 +16,172 @@ describe('Smoke Tests - Add Command', () => {
   });
 
   describe('parseAddOptions', () => {
-    it('should parse source argument', () => {
-      const { source, options } = parseAddOptions(['my-server']);
-      expect(source).toBe('my-server');
+    it('should parse stdio server with name and command', () => {
+      const { name, transport, options } = parseAddOptions([
+        'my-server',
+        '--',
+        'npx',
+        '-y',
+        '@playwright/mcp',
+      ]);
+      expect(name).toBe('my-server');
+      expect(transport.type).toBe('stdio');
+      expect(transport.command).toBe('npx');
+      expect(transport.args).toEqual(['-y', '@playwright/mcp']);
     });
 
     it('should parse --agent flag', () => {
-      const { source, options } = parseAddOptions(['server', '--agent', 'claude-code,codex']);
+      const { name, options } = parseAddOptions([
+        'server',
+        '--agent',
+        'claude-code,codex',
+        '--',
+        'node',
+        'server.js',
+      ]);
+      expect(name).toBe('server');
       expect(options.agents).toEqual(['claude-code', 'codex']);
     });
 
     it('should parse -a shorthand', () => {
-      const { source, options } = parseAddOptions(['server', '-a', 'claude-code']);
+      const { name, options } = parseAddOptions([
+        'server',
+        '-a',
+        'claude-code',
+        '--',
+        'node',
+        'server.js',
+      ]);
+      expect(name).toBe('server');
       expect(options.agents).toEqual(['claude-code']);
     });
 
     it('should parse --scope flag', () => {
-      const { source, options } = parseAddOptions(['server', '--scope', 'user']);
+      const { name, options } = parseAddOptions([
+        'server',
+        '--scope',
+        'user',
+        '--',
+        'node',
+        'server.js',
+      ]);
+      expect(name).toBe('server');
       expect(options.scope).toBe('user');
     });
 
     it('should parse -s shorthand', () => {
-      const { source, options } = parseAddOptions(['server', '-s', 'project']);
+      const { name, options } = parseAddOptions([
+        'server',
+        '-s',
+        'project',
+        '--',
+        'node',
+        'server.js',
+      ]);
+      expect(name).toBe('server');
       expect(options.scope).toBe('project');
     });
 
-    it('should parse --list flag', () => {
-      const { source, options } = parseAddOptions(['server', '--list']);
-      expect(options.list).toBe(true);
-    });
-
-    it('should parse --all flag', () => {
-      const { source, options } = parseAddOptions(['server', '--all']);
-      expect(options.all).toBe(true);
-    });
-
     it('should parse --yes flag', () => {
-      const { source, options } = parseAddOptions(['server', '--yes']);
+      const { name, options } = parseAddOptions(['server', '--yes', '--', 'node', 'server.js']);
+      expect(name).toBe('server');
       expect(options.yes).toBe(true);
     });
 
     it('should parse -y shorthand', () => {
-      const { source, options } = parseAddOptions(['server', '-y']);
+      const { name, options } = parseAddOptions(['server', '-y', '--', 'node', 'server.js']);
+      expect(name).toBe('server');
       expect(options.yes).toBe(true);
     });
 
-    it('should throw when source is missing', () => {
-      expect(() => parseAddOptions([])).toThrow('Source is required');
+    it('should parse --env flag', () => {
+      const { name, transport, options } = parseAddOptions([
+        'server',
+        '--env',
+        'API_KEY=secret123',
+        '--',
+        'node',
+        'server.js',
+      ]);
+      expect(name).toBe('server');
+      expect(transport.type).toBe('stdio');
+      expect(transport.env).toEqual({ API_KEY: 'secret123' });
+    });
+
+    it('should parse --transport http with URL', () => {
+      const { name, transport, options } = parseAddOptions([
+        '--transport',
+        'http',
+        'my-api',
+        'https://api.example.com/mcp',
+      ]);
+      expect(name).toBe('my-api');
+      expect(transport.type).toBe('http');
+      expect(transport.url).toBe('https://api.example.com/mcp');
+    });
+
+    it('should parse --transport sse with URL', () => {
+      const { name, transport, options } = parseAddOptions([
+        '--transport',
+        'sse',
+        'events',
+        'https://events.example.com/sse',
+      ]);
+      expect(name).toBe('events');
+      expect(transport.type).toBe('sse');
+      expect(transport.url).toBe('https://events.example.com/sse');
+    });
+
+    it('should parse --header flag for http transport', () => {
+      const { name, transport, options } = parseAddOptions([
+        '--transport',
+        'http',
+        '--header',
+        'Authorization: Bearer token123',
+        'api',
+        'https://api.example.com',
+      ]);
+      expect(name).toBe('api');
+      expect(transport.type).toBe('http');
+      expect(transport.headers).toEqual({ Authorization: 'Bearer token123' });
+    });
+
+    it('should throw when name is missing', () => {
+      expect(() => parseAddOptions([])).toThrow('Server name is required');
+    });
+
+    it('should throw when command is missing for stdio transport', () => {
+      expect(() => parseAddOptions(['my-server'])).toThrow(
+        'Command is required for stdio transport'
+      );
+    });
+
+    it('should throw when URL is missing for http transport', () => {
+      expect(() => parseAddOptions(['--transport', 'http', 'my-api'])).toThrow(
+        'URL is required for http transport'
+      );
     });
 
     it('should parse multiple flags together', () => {
-      const { source, options } = parseAddOptions([
+      const { name, transport, options } = parseAddOptions([
         'my-server',
         '--agent',
         'claude-code',
         '--scope',
         'user',
+        '--env',
+        'KEY=value',
         '--yes',
+        '--',
+        'npx',
+        '-y',
+        '@package/server',
       ]);
-      expect(source).toBe('my-server');
+      expect(name).toBe('my-server');
+      expect(transport.type).toBe('stdio');
+      expect(transport.command).toBe('npx');
+      expect(transport.args).toEqual(['-y', '@package/server']);
+      expect(transport.env).toEqual({ KEY: 'value' });
       expect(options.agents).toEqual(['claude-code']);
       expect(options.scope).toBe('user');
       expect(options.yes).toBe(true);
