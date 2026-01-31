@@ -55,6 +55,9 @@ COPY tests/docker/test-real-agents.sh /usr/local/bin/test-real-agents.sh
 COPY tests/integration/run-all-tests.sh /usr/local/bin/run-all-tests.sh
 RUN chmod +x /usr/local/bin/test-real-agents.sh /usr/local/bin/run-all-tests.sh
 
+# Change ownership of /app to testuser so vitest can write cache files
+RUN chown -R testuser:testuser /app
+
 # Switch to test user for running tests
 USER testuser
 ENV HOME=/home/testuser
