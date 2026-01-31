@@ -19,30 +19,41 @@ RUN apt-get update && apt-get install -y \
 
 # Create test user
 RUN useradd -m -s /bin/bash testuser
+
+# Switch to test user for npm global installs
 USER testuser
-WORKDIR /home/testuser
+ENV HOME=/home/testuser
+ENV PATH="/home/testuser/.npm-global/bin:${PATH}"
+
+# Configure npm to use user directory for global packages
+RUN mkdir -p ~/.npm-global && npm config set prefix '~/.npm-global'
 
 # Install global npm packages for MCP clients
 RUN npm install -g \
     @anthropic-ai/claude-code \
     @openai/codex \
-    opencode
+    opencode-ai
 
 # Create project directory
 RUN mkdir -p /home/testuser/test-project
 WORKDIR /home/testuser/test-project
 
-# Copy the mcp CLI
+# Copy the usemcps CLI
 COPY --chown=testuser:testuser package.json pnpm-lock.yaml ./
 COPY --chown=testuser:testuser dist ./dist
 COPY --chown=testuser:testuser bin ./bin
 
-# Install mcp CLI dependencies
+# Install usemcps CLI dependencies
 RUN npm install
+
+# Install usemcps globally
+USER root
+RUN npm install -g /home/testuser/test-project
+USER testuser
 
 # Set up test environment
 ENV HOME=/home/testuser
-ENV PATH="/home/testuser/.local/bin:${PATH}"
+ENV PATH="/home/testuser/.npm-global/bin:${PATH}"
 
 # Default command runs tests
 CMD ["/bin/bash"]

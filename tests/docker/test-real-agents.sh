@@ -1,9 +1,10 @@
 #!/bin/bash
 # Real Agent Test with Playwright MCP Server
 # 
-# This script tests the mcp CLI with:
+# This script tests the usemcps CLI with:
 # - REAL agents installed (Claude Code, Codex, OpenCode)
 # - REAL MCP server: @playwright/mcp (Microsoft's official Playwright MCP server)
+# - Verifies MCP server is available in all agents
 
 set -e
 
@@ -12,6 +13,24 @@ echo ""
 
 # Ensure PATH includes npm global bin
 export PATH="$HOME/.npm-global/bin:$PATH"
+
+# Track test results
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+# Function to report test result
+report_test() {
+    local test_name="$1"
+    local result="$2"
+    
+    if [ "$result" -eq 0 ]; then
+        echo "✓ PASS: $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo "✗ FAIL: $test_name"
+        ((TESTS_FAILED++))
+    fi
+}
 
 # Check which agents are actually installed
 echo "Checking installed agents..."
@@ -23,16 +42,20 @@ if which claude > /dev/null 2>&1; then
     echo "✓ Claude Code installed: $CLAUDE_VERSION"
     mkdir -p "$HOME/.claude"
     echo '{"initialized": true}' > "$HOME/.claude/config.json"
+    CLAUDE_INSTALLED=true
 else
     echo "✗ Claude Code not found in PATH"
+    CLAUDE_INSTALLED=false
 fi
 
 # Check Codex
 if which codex > /dev/null 2>&1; then
     CODEX_VERSION=$(codex --version 2>&1 | head -1 || echo 'version unknown')
     echo "✓ Codex installed: $CODEX_VERSION"
+    CODEX_INSTALLED=true
 else
     echo "✗ Codex not found in PATH"
+    CODEX_INSTALLED=false
 fi
 
 # Check OpenCode
@@ -41,12 +64,14 @@ if which opencode > /dev/null 2>&1; then
     echo "✓ OpenCode installed: $OPENCODE_VERSION"
     mkdir -p "$HOME/.config/opencode"
     echo '{"mcp": {"servers": {}}}' > "$HOME/.config/opencode/opencode.json"
+    OPENCODE_INSTALLED=true
 else
     echo "✗ OpenCode not found in PATH"
+    OPENCODE_INSTALLED=false
 fi
 
 echo ""
-echo "=== Testing MCP CLI with Playwright MCP Server ==="
+echo "=== Testing usemcps CLI ==="
 echo ""
 
 # Create test directory
@@ -54,92 +79,113 @@ TEST_DIR=$(mktemp -d)
 echo "Test directory: $TEST_DIR"
 cd "$TEST_DIR"
 
-# Test mcp CLI
-MCP_CLI="/app/bin/cli.mjs"
-
-echo "1. Testing usemcps --version"
-node "$MCP_CLI" --version
+# Test 1: Check usemcps version
+echo "Test 1: Checking usemcps --version"
+if usemcps --version > /dev/null 2>&1; then
+    usemcps --version
+    report_test "usemcps --version" 0
+else
+    report_test "usemcps --version" 1
+fi
 echo ""
 
-echo "2. Testing usemcps list (should detect real agents)"
-node "$MCP_CLI" list 2>&1 || true
+# Test 2: Check usemcps list (should detect real agents)
+echo "Test 2: Checking usemcps list detects agents"
+if usemcps list 2>&1 | grep -q "Claude Code\|Codex\|OpenCode"; then
+    report_test "usemcps list detects agents" 0
+else
+    report_test "usemcps list detects agents" 1
+fi
 echo ""
 
-# Create Playwright MCP server config
-echo "3. Creating Playwright MCP server config..."
-mkdir -p playwright-mcp
-cat > playwright-mcp/server.json << 'EOF'
-{
-  "name": "playwright-mcp",
-  "description": "Microsoft Playwright MCP server for browser automation",
-  "transport": "stdio",
-  "command": "npx",
-  "args": ["-y", "@playwright/mcp@latest", "--headless"]
-}
-EOF
-echo "✓ Playwright MCP server config created"
+# Test 3: Install Playwright MCP server
+echo "Test 3: Installing Playwright MCP server"
+if usemcps add --yes playwright -- npx -y @playwright/mcp@latest --headless 2>&1; then
+    report_test "Install Playwright MCP" 0
+else
+    report_test "Install Playwright MCP" 1
+fi
 echo ""
 
-echo "4. Testing usemcps add (installing Playwright MCP to detected agents)"
-echo "Command: usemcps add ./playwright-mcp --yes"
+# Test 4: Verify Playwright appears in usemcps list
+echo "Test 4: Verifying Playwright appears in usemcps list"
+if usemcps list 2>&1 | grep -qi "playwright"; then
+    report_test "Playwright appears in usemcps list" 0
+else
+    report_test "Playwright appears in usemcps list" 1
+fi
 echo ""
 
-# Try to add the server (non-interactively)
-node "$MCP_CLI" add ./playwright-mcp --yes 2>&1 || {
-    echo "Note: mcp add may require interactive prompts"
-    echo "Creating config manually for testing..."
-    
-    # Create config manually to simulate successful installation
-    cat > .mcp.json << 'EOF'
-{
-  "mcpServers": {
-    "playwright-mcp": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest", "--headless"]
-    }
-  }
-}
-EOF
-    echo "✓ Created .mcp.json manually"
-}
-echo ""
-
-echo "5. Testing usemcps list (should show Playwright MCP installed)"
-node "$MCP_CLI" list 2>&1 || true
-echo ""
-
-echo "6. Verifying agent config files..."
-echo ""
-
-# Check configs in agent directories
-for agent_dir in "$HOME/.claude" "$HOME/.codex" "$HOME/.config/opencode"; do
-    if [ -d "$agent_dir" ]; then
-        echo "Checking $agent_dir:"
-        find "$agent_dir" \( -name "*.json" -o -name "*.toml" \) -exec echo "  Found: {}" \; 2>&1 | head -10 || echo "  No config files"
+# Test 5: Verify Playwright in Claude Code config
+echo "Test 5: Verifying Playwright in Claude Code config"
+if [ "$CLAUDE_INSTALLED" = true ]; then
+    if [ -f "$HOME/.claude.json" ] && grep -q "playwright" "$HOME/.claude.json" 2>&1; then
+        report_test "Playwright in Claude Code config" 0
+    else
+        report_test "Playwright in Claude Code config" 1
     fi
-done
-
-echo ""
-echo "7. Checking project config files..."
-ls -la "$TEST_DIR"/.* 2>&1 | grep -E "(mcp|codex|opencode)" || echo "No project configs found"
+else
+    echo "  (Skipped - Claude Code not installed)"
+fi
 echo ""
 
-echo "=== Test Summary ==="
-echo "✓ Real agents installed and detected:"
-echo "  - Claude Code"
-echo "  - Codex"
-echo "  - OpenCode"
-echo "✓ Playwright MCP server configured"
-echo "✓ MCP CLI commands executed successfully"
-echo "✓ Server installed to detected agents"
+# Test 6: Verify Playwright in Codex config
+echo "Test 6: Verifying Playwright in Codex config"
+if [ "$CODEX_INSTALLED" = true ]; then
+    if [ -f "$HOME/.codex/config.toml" ] && grep -q "playwright" "$HOME/.codex/config.toml" 2>&1; then
+        report_test "Playwright in Codex config" 0
+    elif [ -f ".codex/config.toml" ] && grep -q "playwright" ".codex/config.toml" 2>&1; then
+        report_test "Playwright in Codex config" 0
+    else
+        report_test "Playwright in Codex config" 1
+    fi
+else
+    echo "  (Skipped - Codex not installed)"
+fi
 echo ""
-echo "Playwright MCP provides browser automation capabilities:"
-echo "  - Navigate to web pages"
-echo "  - Click elements"
-echo "  - Fill forms"
-echo "  - Take screenshots"
-echo "  - Run browser automation tasks"
+
+# Test 7: Verify Playwright in OpenCode config
+echo "Test 7: Verifying Playwright in OpenCode config"
+if [ "$OPENCODE_INSTALLED" = true ]; then
+    if [ -f "$HOME/.config/opencode/opencode.json" ] && grep -q "playwright" "$HOME/.config/opencode/opencode.json" 2>&1; then
+        report_test "Playwright in OpenCode config" 0
+    else
+        report_test "Playwright in OpenCode config" 1
+    fi
+else
+    echo "  (Skipped - OpenCode not installed)"
+fi
 echo ""
-echo "Test directory: $TEST_DIR"
-echo "To inspect: docker exec -it mcp-linux-test /bin/bash"
+
+# Test 8: Verify .mcp.json exists in project
+echo "Test 8: Verifying .mcp.json exists in project directory"
+if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
+    report_test ".mcp.json exists with Playwright" 0
+else
+    report_test ".mcp.json exists with Playwright" 1
+fi
+echo ""
+
+# Print test summary
+echo "========================================"
+echo "Test Summary"
+echo "========================================"
+echo "Tests Passed: $TESTS_PASSED"
+echo "Tests Failed: $TESTS_FAILED"
+echo ""
+
+if [ $TESTS_FAILED -eq 0 ]; then
+    echo "✓ All tests passed!"
+    echo ""
+    echo "Playwright MCP server is successfully installed and available in all agents."
+    echo ""
+    echo "Test directory: $TEST_DIR"
+    echo "To inspect: docker exec -it mcp-linux-test /bin/bash"
+    exit 0
+else
+    echo "✗ Some tests failed!"
+    echo ""
+    echo "Test directory: $TEST_DIR"
+    echo "To debug: docker exec -it mcp-linux-test /bin/bash"
+    exit 1
+fi
