@@ -69,7 +69,7 @@ function showHelp(): void {
 ${pc.bold('Usage:')} usemcps <command> [options]
 
 ${pc.bold('Commands:')}
-  add <source>      Add an MCP server from registry, git, or local path
+  add <path>        Add an MCP server from a local path containing server.json
   list, ls          List installed MCP servers
   remove, rm        Remove installed MCP servers
   check             Check for available server updates
@@ -97,10 +97,9 @@ ${pc.bold('Options:')}
   --version, -v     Show version number
 
 ${pc.bold('Examples:')}
-  ${pc.dim('$')} usemcps add io.github.user/server
-  ${pc.dim('$')} usemcps add github.com/user/repo
-  ${pc.dim('$')} usemcps add ./local-server
-  ${pc.dim('$')} usemcps add user/repo --agent claude-code --scope project
+  ${pc.dim('$')} usemcps add ./my-mcp-server
+  ${pc.dim('$')} usemcps add /path/to/server.json
+  ${pc.dim('$')} usemcps add ./servers/playwright-mcp
   ${pc.dim('$')} usemcps list
   ${pc.dim('$')} usemcps list --global
   ${pc.dim('$')} usemcps remove my-server

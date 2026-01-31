@@ -1,65 +1,5 @@
 import type { SourceInfo, NormalizedServer } from '../types.ts';
 import { parseServerJson } from '../manifests/server-json.ts';
-
-// ============================================
-// Git Source
-// ============================================
-
-export function parseGitUrl(url: string): { owner: string; repo: string; path?: string } | null {
-  // Handle GitHub URLs
-  const githubMatch = url.match(/github\.com[/:]([^/]+)\/([^/]+)(?:\/(.+))?/);
-  if (githubMatch) {
-    return {
-      owner: githubMatch[1]!,
-      repo: githubMatch[2]!.replace(/\.git$/, ''),
-      path: githubMatch[3],
-    };
-  }
-
-  // Handle shorthand like owner/repo
-  const shorthandMatch = url.match(/^[\w-]+\/[\w-]+$/);
-  if (shorthandMatch) {
-    return {
-      owner: shorthandMatch[1]!,
-      repo: shorthandMatch[2]!,
-    };
-  }
-
-  return null;
-}
-
-export async function fetchFromGit(url: string): Promise<NormalizedServer[]> {
-  const gitInfo = parseGitUrl(url);
-
-  if (!gitInfo) {
-    throw new Error(`Invalid Git URL: ${url}`);
-  }
-
-  const { owner, repo, path } = gitInfo;
-  const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${path || 'server.json'}`;
-
-  try {
-    const response = await fetch(rawUrl);
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch from GitHub: ${response.status}`);
-    }
-
-    const content = await response.text();
-    const server = parseServerJson(content);
-    return [server];
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('fetch')) {
-      throw new Error(`Failed to fetch from GitHub: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-// ============================================
-// Local Source
-// ============================================
-
 import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
@@ -129,15 +69,11 @@ function discoverServerJsonFiles(dir: string): NormalizedServer[] {
   return servers;
 }
 
-// ============================================
-// Source Parser Main
-// ============================================
-
 export async function parseSource(source: string): Promise<{
   sourceInfo: SourceInfo;
   servers: NormalizedServer[];
 }> {
-  // Check if it's a local path
+  // Only support local paths
   if (source.startsWith('.') || source.startsWith('/') || source.includes('/server.json')) {
     const servers = readFromLocalPath(source);
     return {
@@ -146,17 +82,8 @@ export async function parseSource(source: string): Promise<{
     };
   }
 
-  // Check if it's a GitHub URL or shorthand
-  if (source.includes('github.com') || /^[\w-]+\/[\w-]+$/.test(source)) {
-    const servers = await fetchFromGit(source);
-    return {
-      sourceInfo: { type: 'git', url: source },
-      servers,
-    };
-  }
-
   // Unknown source type
   throw new Error(
-    `Unknown source type: ${source}. Supported formats: local path, GitHub URL (github.com/user/repo or user/repo)`
+    `Unknown source type: ${source}. Only local paths to server.json files or directories containing server.json are supported.`
   );
 }
