@@ -1,5 +1,5 @@
 {
-  "name": "mcps",
+  "name": "mcpget",
   "version": "0.2.5",
   "description": "MCP server installer CLI",
   "type": "module",
