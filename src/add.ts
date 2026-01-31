@@ -194,8 +194,26 @@ export async function runAdd(
       .filter((a): a is NonNullable<typeof a> => a !== undefined);
   }
 
-  // Determine scope
-  const scope: Scope = options.scope || 'project';
+  // Determine scope - prompt if not provided
+  let scope: Scope;
+  if (options.scope) {
+    scope = options.scope;
+  } else {
+    const scopeChoice = await p.select({
+      message: 'Select installation scope:',
+      options: [
+        { value: 'project', label: 'project', hint: 'Available only in current project (default)' },
+        { value: 'user', label: 'user', hint: 'Available across all projects' },
+      ],
+    });
+
+    if (p.isCancel(scopeChoice)) {
+      console.log(pc.yellow('Installation cancelled'));
+      return;
+    }
+
+    scope = scopeChoice as Scope;
+  }
 
   // Show installation summary
   console.log(pc.bold('\nInstallation Summary:\n'));
