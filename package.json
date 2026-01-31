@@ -1,5 +1,5 @@
 {
-  "name": "getmcp",
+  "name": "mcpadd",
   "version": "0.2.7",
   "description": "MCP server installer CLI",
   "type": "module",
