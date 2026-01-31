@@ -1,121 +1,163 @@
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
-import type { AddOptions, NormalizedServer, Scope } from './types.ts';
+import type { AddOptions, NormalizedServer, Scope, Transport } from './types.ts';
 import { adapterList, detectInstalledAdapters, getAdapter } from './agents/index.ts';
-import { parseSource } from './sources/source-parser.ts';
 import { addLockEntry } from './lock.ts';
 
-export function parseAddOptions(args: string[]): { source: string; options: AddOptions } {
-  const options: AddOptions = {};
-  const positional: string[] = [];
+export interface ParsedAddArgs {
+  name: string;
+  transport: Transport;
+  env: Record<string, string>;
+  options: AddOptions;
+}
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
+export function parseAddOptions(args: string[]): ParsedAddArgs {
+  const options: AddOptions = {};
+  const env: Record<string, string> = {};
+  let transportType: 'stdio' | 'http' | 'sse' = 'stdio';
+  let transportUrl: string | undefined;
+  let _transportCommand: string | undefined;
+  const _transportArgs: string[] = [];
+  let transportHeaders: Record<string, string> | undefined;
+
+  const preDash: string[] = [];
+  const postDash: string[] = [];
+
+  // Find the -- separator
+  const dashIndex = args.indexOf('--');
+
+  if (dashIndex !== -1) {
+    preDash.push(...args.slice(0, dashIndex));
+    postDash.push(...args.slice(dashIndex + 1));
+  } else {
+    preDash.push(...args);
+  }
+
+  // Parse options before --
+  for (let i = 0; i < preDash.length; i++) {
+    const arg = preDash[i];
 
     switch (arg) {
       case '-a':
       case '--agent':
-        options.agents = args[++i]?.split(',').map(a => a.trim());
+        options.agents = preDash[++i]?.split(',').map(a => a.trim());
         break;
       case '-s':
       case '--scope':
-        options.scope = args[++i] as Scope;
-        break;
-      case '-l':
-      case '--list':
-        options.list = true;
-        break;
-      case '--server':
-        options.servers = args[++i]?.split(',').map(s => s.trim());
-        break;
-      case '--all':
-        options.all = true;
+        options.scope = preDash[++i] as Scope;
         break;
       case '-y':
       case '--yes':
         options.yes = true;
         break;
-      default:
-        if (!arg?.startsWith('-')) {
-          positional.push(arg!);
+      case '--transport': {
+        const t = preDash[++i];
+        if (t === 'stdio' || t === 'http' || t === 'sse') {
+          transportType = t;
         }
         break;
+      }
+      case '--env': {
+        const envArg = preDash[++i];
+        if (envArg) {
+          const [key, ...valueParts] = envArg.split('=');
+          if (key && valueParts.length > 0) {
+            env[key] = valueParts.join('=');
+          }
+        }
+        break;
+      }
+      case '--header': {
+        const headerArg = preDash[++i];
+        if (headerArg) {
+          const [key, ...valueParts] = headerArg.split(':');
+          if (key && valueParts.length > 0) {
+            if (!transportHeaders) transportHeaders = {};
+            transportHeaders[key.trim()] = valueParts.join(':').trim();
+          }
+        }
+        break;
+      }
+      default: {
+        if (!arg?.startsWith('-')) {
+          // This should be the server name
+          if (!(options as { name?: string }).name) {
+            (options as { name?: string }).name = arg;
+          } else if (transportType !== 'stdio' && !transportUrl) {
+            // For http/sse, the next positional arg is the URL
+            transportUrl = arg;
+          }
+        }
+        break;
+      }
     }
   }
 
-  if (positional.length === 0) {
-    throw new Error('Source is required. Usage: usemcps add <source>');
+  // The server name is required
+  const name = (options as { name?: string }).name;
+  if (!name) {
+    throw new Error(
+      'Server name is required. Usage: usemcps add [options] <name> -- <command> [args...]'
+    );
   }
 
-  return { source: positional[0]!, options };
+  // Build transport based on type
+  let transport: Transport;
+
+  if (transportType === 'stdio') {
+    // For stdio, everything after -- is the command and args
+    if (postDash.length === 0) {
+      throw new Error(
+        'Command is required for stdio transport. Usage: usemcps add [options] <name> -- <command> [args...]'
+      );
+    }
+    transport = {
+      type: 'stdio',
+      command: postDash[0]!,
+      args: postDash.slice(1),
+      env: Object.keys(env).length > 0 ? env : undefined,
+    };
+  } else if (transportType === 'http') {
+    if (!transportUrl) {
+      throw new Error(
+        'URL is required for http transport. Usage: usemcps add --transport http [options] <name> <url>'
+      );
+    }
+    transport = {
+      type: 'http',
+      url: transportUrl,
+      headers: transportHeaders,
+    };
+  } else {
+    // sse
+    if (!transportUrl) {
+      throw new Error(
+        'URL is required for sse transport. Usage: usemcps add --transport sse [options] <name> <url>'
+      );
+    }
+    transport = {
+      type: 'sse',
+      url: transportUrl,
+    };
+  }
+
+  return { name, transport, env, options };
 }
 
-export async function runAdd(source: string, options: AddOptions): Promise<void> {
-  const s = p.spinner();
+export async function runAdd(
+  name: string,
+  transport: Transport,
+  options: AddOptions
+): Promise<void> {
+  const _spinner = p.spinner();
 
-  // Parse source and fetch server(s)
-  s.start('Fetching server configuration...');
-  let servers: NormalizedServer[];
-  let sourceInfo: { type: 'registry' | 'git' | 'local'; url: string };
-
-  try {
-    const result = await parseSource(source);
-    servers = result.servers;
-    sourceInfo = result.sourceInfo;
-  } catch (error) {
-    s.stop(
-      pc.red(`Failed to fetch server: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    );
-    throw error;
-  }
-  s.stop('Server configuration fetched');
-
-  // Filter servers if specific ones requested
-  if (options.servers && options.servers.length > 0) {
-    servers = servers.filter(s => options.servers?.includes(s.id));
-    if (servers.length === 0) {
-      throw new Error('No matching servers found');
-    }
-  }
-
-  // List mode - just show available servers
-  if (options.list) {
-    console.log(pc.bold('\nAvailable servers:\n'));
-    for (const server of servers) {
-      console.log(`  ${pc.cyan(server.id)}`);
-      if (server.description) {
-        console.log(`    ${pc.dim(server.description)}`);
-      }
-      console.log(`    ${pc.dim('Transport:')} ${server.transport.type}`);
-      if (server.secrets.length > 0) {
-        console.log(`    ${pc.dim('Secrets:')} ${server.secrets.map(s => s.name).join(', ')}`);
-      }
-      console.log();
-    }
-    return;
-  }
-
-  // Select servers interactively if not using --all and multiple found
-  let selectedServers = servers;
-  if (!options.all && servers.length > 1) {
-    const choices = servers.map(s => ({
-      value: s.id,
-      label: s.id,
-      hint: s.description,
-    }));
-
-    const selected = await p.multiselect({
-      message: 'Select servers to install:',
-      options: choices,
-    });
-
-    if (p.isCancel(selected) || selected.length === 0) {
-      console.log(pc.yellow('Installation cancelled'));
-      return;
-    }
-
-    selectedServers = servers.filter(s => selected.includes(s.id));
-  }
+  // Create server configuration
+  const server: NormalizedServer = {
+    id: name,
+    displayName: name,
+    transport,
+    secrets: [],
+  };
 
   // Detect target agents
   let targetAgents = adapterList;
@@ -157,22 +199,18 @@ export async function runAdd(source: string, options: AddOptions): Promise<void>
 
   // Show installation summary
   console.log(pc.bold('\nInstallation Summary:\n'));
-  console.log(`${pc.dim('Source:')} ${source}`);
+  console.log(`${pc.dim('Name:')} ${name}`);
+  console.log(`${pc.dim('Transport:')} ${transport.type}`);
+  if (transport.type === 'stdio') {
+    console.log(`${pc.dim('Command:')} ${transport.command} ${transport.args.join(' ')}`);
+    if (transport.env && Object.keys(transport.env).length > 0) {
+      console.log(`${pc.dim('Environment:')} ${Object.keys(transport.env).join(', ')}`);
+    }
+  } else {
+    console.log(`${pc.dim('URL:')} ${transport.url}`);
+  }
   console.log(`${pc.dim('Scope:')} ${scope}`);
   console.log(`${pc.dim('Agents:')} ${targetAgents.map(a => a.displayName).join(', ')}`);
-  console.log(`${pc.dim('Servers:')}`);
-
-  for (const server of selectedServers) {
-    console.log(`  ${pc.cyan(server.id)}`);
-    console.log(`    ${pc.dim('Transport:')} ${server.transport.type}`);
-    if (server.transport.type === 'stdio') {
-      console.log(
-        `    ${pc.dim('Command:')} ${server.transport.command} ${server.transport.args.join(' ')}`
-      );
-    } else {
-      console.log(`    ${pc.dim('URL:')} ${server.transport.url}`);
-    }
-  }
   console.log();
 
   // Confirm installation
@@ -189,6 +227,10 @@ export async function runAdd(source: string, options: AddOptions): Promise<void>
 
   // Install to each agent
   const cwd = process.cwd();
+  const sourceInfo = {
+    type: 'local' as const,
+    url: `${transport.type}:${transport.type === 'stdio' ? transport.command : transport.url}`,
+  };
 
   for (const agent of targetAgents) {
     // Check if scope is supported
@@ -199,22 +241,17 @@ export async function runAdd(source: string, options: AddOptions): Promise<void>
 
     console.log(pc.bold(`\nInstalling to ${agent.displayName}...`));
 
-    for (const server of selectedServers) {
-      try {
-        await agent.addServer(scope, cwd, server, options);
-        console.log(`  ${pc.green('✓')} ${server.id}`);
-      } catch (error) {
-        console.log(
-          `  ${pc.red('✗')} ${server.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
-        );
-      }
+    try {
+      await agent.addServer(scope, cwd, server, options);
+      console.log(`  ${pc.green('✓')} ${name}`);
+    } catch (error) {
+      console.log(
+        `  ${pc.red('✗')} ${name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     // Update lock file
-    for (const server of selectedServers) {
-      const installedName = server.id.split('/').pop() || server.id;
-      addLockEntry(server.id, sourceInfo, server, [{ agent: agent.id, scope, installedName }]);
-    }
+    addLockEntry(name, sourceInfo, server, [{ agent: agent.id, scope, installedName: name }]);
   }
 
   console.log(pc.green('\n✓ Installation complete'));

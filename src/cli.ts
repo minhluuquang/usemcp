@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import * as p from '@clack/prompts';
+// import type * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { runAdd, parseAddOptions } from './add.ts';
 import { runList, parseListOptions } from './list.ts';
@@ -69,19 +69,21 @@ function showHelp(): void {
 ${pc.bold('Usage:')} usemcps <command> [options]
 
 ${pc.bold('Commands:')}
-  add <path>        Add an MCP server from a local path containing server.json
-  list, ls          List installed MCP servers
-  remove, rm        Remove installed MCP servers
-  check             Check for available server updates
-  update            Update all servers to latest versions
+  add [options] <name> -- <command> [args...]    Add an MCP server (stdio transport)
+  add --transport http [options] <name> <url>    Add an HTTP MCP server
+  add --transport sse [options] <name> <url>     Add an SSE MCP server
+  list, ls                                       List installed MCP servers
+  remove, rm                                     Remove installed MCP servers
+  check                                          Check for available server updates
+  update                                         Update all servers to latest versions
 
 ${pc.bold('Add Options:')}
+  --transport <type>       Transport type: stdio|http|sse (default: stdio)
   -a, --agent <agents...>  Target specific agents (default: auto-detect)
   -s, --scope <scope>      Installation scope: project|user (default: project)
-  -l, --list              List available servers without installing
-  --server <ids...>       Install specific servers from source
-  --all                   Install all servers found in source
-  -y, --yes               Skip confirmation prompts
+  --env <KEY=value>        Set environment variable (can be used multiple times)
+  --header <KEY:value>     Set HTTP header (for http/sse transport)
+  -y, --yes                Skip confirmation prompts
 
 ${pc.bold('List Options:')}
   -g, --global            List global/user-scoped servers
@@ -97,9 +99,10 @@ ${pc.bold('Options:')}
   --version, -v     Show version number
 
 ${pc.bold('Examples:')}
-  ${pc.dim('$')} usemcps add ./my-mcp-server
-  ${pc.dim('$')} usemcps add /path/to/server.json
-  ${pc.dim('$')} usemcps add ./servers/playwright-mcp
+  ${pc.dim('$')} usemcps add playwright -- npx -y @playwright/mcp@latest
+  ${pc.dim('$')} usemcps add --env API_KEY=xxx myserver -- node server.js
+  ${pc.dim('$')} usemcps add --transport http notion https://mcp.notion.com/mcp
+  ${pc.dim('$')} usemcps add --transport sse asana https://mcp.asana.com/sse
   ${pc.dim('$')} usemcps list
   ${pc.dim('$')} usemcps list --global
   ${pc.dim('$')} usemcps remove my-server
@@ -137,8 +140,8 @@ async function main(): Promise<void> {
       case 'i': {
         showLogo();
         console.log();
-        const { source, options } = parseAddOptions(restArgs);
-        await runAdd(source, options);
+        const { name, transport, options } = parseAddOptions(restArgs);
+        await runAdd(name, transport, options);
         break;
       }
 
