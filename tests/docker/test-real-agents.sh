@@ -89,21 +89,21 @@ else
 fi
 echo ""
 
-# Test 2: Check usemcps list --global (should detect real agents with user scope)
-echo "Test 2: Checking usemcps list detects agents"
-if usemcps list --global 2>&1 | grep -q "Claude Code\|Codex\|OpenCode"; then
-    report_test "usemcps list detects agents" 0
-else
-    report_test "usemcps list detects agents" 1
-fi
-echo ""
-
-# Test 3: Install Playwright MCP server with user scope (to test agent-specific configs)
-echo "Test 3: Installing Playwright MCP server (user scope)"
+# Test 2: Install Playwright MCP server with user scope (to test agent-specific configs)
+echo "Test 2: Installing Playwright MCP server (user scope)"
 if usemcps add --yes --scope user playwright -- npx -y @playwright/mcp@latest --headless 2>&1; then
     report_test "Install Playwright MCP" 0
 else
     report_test "Install Playwright MCP" 1
+fi
+echo ""
+
+# Test 3: Check usemcps list --global detects agents with Playwright installed
+echo "Test 3: Checking usemcps list detects agents with Playwright"
+if usemcps list --global 2>&1 | grep -q "Claude Code\|Codex\|OpenCode"; then
+    report_test "usemcps list detects agents" 0
+else
+    report_test "usemcps list detects agents" 1
 fi
 echo ""
 
