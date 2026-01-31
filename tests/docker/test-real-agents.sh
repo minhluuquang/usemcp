@@ -89,9 +89,9 @@ else
 fi
 echo ""
 
-# Test 2: Check usemcps list (should detect real agents)
+# Test 2: Check usemcps list --global (should detect real agents with user scope)
 echo "Test 2: Checking usemcps list detects agents"
-if usemcps list 2>&1 | grep -q "Claude Code\|Codex\|OpenCode"; then
+if usemcps list --global 2>&1 | grep -q "Claude Code\|Codex\|OpenCode"; then
     report_test "usemcps list detects agents" 0
 else
     report_test "usemcps list detects agents" 1
@@ -107,9 +107,9 @@ else
 fi
 echo ""
 
-# Test 4: Verify Playwright appears in usemcps list
+# Test 4: Verify Playwright appears in usemcps list --global
 echo "Test 4: Verifying Playwright appears in usemcps list"
-if usemcps list 2>&1 | grep -qi "playwright"; then
+if usemcps list --global 2>&1 | grep -qi "playwright"; then
     report_test "Playwright appears in usemcps list" 0
 else
     report_test "Playwright appears in usemcps list" 1
