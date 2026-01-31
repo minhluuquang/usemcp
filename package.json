@@ -1,6 +1,6 @@
 {
   "name": "mcpget",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "MCP server installer CLI",
   "type": "module",
   "bin": {
