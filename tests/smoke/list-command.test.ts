@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { homedir } from 'os';
 import { parseListOptions, runList } from '../../src/list.ts';
 import { claudeCodeAdapter } from '../../src/agents/claude-code.ts';
 import { codexAdapter } from '../../src/agents/codex.ts';
@@ -10,6 +11,8 @@ import type { NormalizedServer } from '../../src/types.ts';
 describe('Smoke Tests - List Command', () => {
   let tempDir: string;
   let originalCwd: string;
+  let claudeConfigDir: string;
+  let codexConfigDir: string;
 
   const testServer: NormalizedServer = {
     id: 'test/server',
@@ -27,11 +30,25 @@ describe('Smoke Tests - List Command', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'mcp-list-test-'));
     originalCwd = process.cwd();
     process.chdir(tempDir);
+
+    // Create mock config directories to simulate agents being installed
+    claudeConfigDir = join(tempDir, '.claude');
+    codexConfigDir = join(tempDir, '.codex');
+    mkdirSync(claudeConfigDir, { recursive: true });
+    mkdirSync(codexConfigDir, { recursive: true });
+
+    // Set environment variables so adapters detect them as installed
+    process.env.CLAUDE_CONFIG_DIR = claudeConfigDir;
+    process.env.CODEX_HOME = codexConfigDir;
   });
 
   afterEach(() => {
     process.chdir(originalCwd);
     rmSync(tempDir, { recursive: true, force: true });
+
+    // Clean up environment variables
+    delete process.env.CLAUDE_CONFIG_DIR;
+    delete process.env.CODEX_HOME;
   });
 
   describe('parseListOptions', () => {
