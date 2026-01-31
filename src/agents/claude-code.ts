@@ -10,7 +10,8 @@ import type {
   AddOptions,
 } from '../types.ts';
 
-const CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR?.trim() || join(homedir(), '.claude');
+const CLAUDE_CONFIG_PATH =
+  process.env.CLAUDE_CONFIG_PATH?.trim() || join(homedir(), '.claude.json');
 
 // Helper functions
 function normalizedToClaudeConfig(server: NormalizedServer): Record<string, unknown> {
@@ -77,14 +78,14 @@ export const claudeCodeAdapter: AgentAdapter = {
   supportedScopes: ['project', 'user'],
 
   async detectInstalled(): Promise<boolean> {
-    return existsSync(CLAUDE_CONFIG_DIR);
+    return existsSync(CLAUDE_CONFIG_PATH);
   },
 
   getConfigPath(scope: Scope, cwd: string): string {
     if (scope === 'project') {
       return join(cwd, '.mcp.json');
     }
-    return join(CLAUDE_CONFIG_DIR, 'config.json');
+    return CLAUDE_CONFIG_PATH;
   },
 
   async readConfig(scope: Scope, cwd: string): Promise<ParsedConfig> {
@@ -110,10 +111,9 @@ export const claudeCodeAdapter: AgentAdapter = {
 
   async writeConfig(scope: Scope, cwd: string, servers: Record<string, unknown>): Promise<void> {
     const configPath = this.getConfigPath(scope, cwd);
-    const dir = scope === 'project' ? cwd : CLAUDE_CONFIG_DIR;
 
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
+    if (scope === 'project' && !existsSync(cwd)) {
+      mkdirSync(cwd, { recursive: true });
     }
 
     let config: Record<string, unknown> = {};
