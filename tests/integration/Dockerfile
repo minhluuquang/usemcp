@@ -27,15 +27,12 @@ RUN npm install -g \
     @openai/codex \
     opencode-ai
 
-# Create necessary directories for opencode with proper permissions
-USER root
-RUN mkdir -p /home/testuser/.local/share/opencode \
-    /home/testuser/.local/state/opencode \
-    /home/testuser/.config/opencode \
-    /home/testuser/.cache/opencode \
-    && chown -R testuser:testuser /home/testuser/.local /home/testuser/.config /home/testuser/.cache
+# Let opencode initialize itself, then fix permissions
+USER testuser
+RUN opencode --version 2>/dev/null || true
 
 # Switch back to root for app installation
+USER root
 WORKDIR /app
 
 # Copy package.json and pnpm-lock.yaml
