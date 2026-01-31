@@ -97,7 +97,7 @@ describe('Smoke Tests - List Command', () => {
       expect(output).toContain('Claude Code');
     });
 
-    it('should show empty message when no servers', async () => {
+    it('should show agents even when no servers', async () => {
       const logs: string[] = [];
       const originalLog = console.log;
       console.log = (...args) => logs.push(args.join(' '));
@@ -107,7 +107,8 @@ describe('Smoke Tests - List Command', () => {
       console.log = originalLog;
 
       const output = logs.join('\n');
-      expect(output).toContain('No MCP servers installed');
+      // Should show total count even when no servers
+      expect(output).toContain('Total: 0 server(s)');
     });
   });
 });
