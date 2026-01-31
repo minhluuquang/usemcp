@@ -5,7 +5,9 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],
-    exclude: ['tests/integration/**'],
+    // Exclude integration tests by default (they need Docker environment)
+    // Set VITEST_INCLUDE_INTEGRATION=1 to run them
+    exclude: process.env.VITEST_INCLUDE_INTEGRATION ? [] : ['tests/integration/**'],
     fileParallelism: false,
     coverage: {
       provider: 'v8',

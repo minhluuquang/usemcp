@@ -39,9 +39,9 @@ cd /app
 echo "=== Phase 1: Integration Tests ==="
 echo ""
 
-# Run integration tests using pnpm
+# Run integration tests using pnpm (enable integration tests via env var)
 echo "Running integration tests (filesystem, lock file, adapter operations)..."
-if pnpm test:integration 2>&1; then
+if VITEST_INCLUDE_INTEGRATION=1 pnpm test:integration 2>&1; then
     report_test "Integration Tests" 0
 else
     report_test "Integration Tests" 1
