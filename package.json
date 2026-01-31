@@ -1,5 +1,5 @@
 {
-  "name": "usemcp",
+  "name": "@leo96/mcp",
   "version": "0.2.1",
   "description": "MCP server installer CLI",
   "type": "module",
