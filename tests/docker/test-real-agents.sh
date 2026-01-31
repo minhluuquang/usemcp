@@ -25,10 +25,10 @@ report_test() {
     
     if [ "$result" -eq 0 ]; then
         echo "✓ PASS: $test_name"
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         echo "✗ FAIL: $test_name"
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -116,10 +116,11 @@ else
 fi
 echo ""
 
-# Test 5: Verify Playwright in Claude Code config
+# Test 5: Verify Playwright in Claude Code config (project scope uses .mcp.json)
 echo "Test 5: Verifying Playwright in Claude Code config"
 if [ "$CLAUDE_INSTALLED" = true ]; then
-    if [ -f "$HOME/.claude.json" ] && grep -q "playwright" "$HOME/.claude.json" 2>&1; then
+    # Claude Code with project scope uses .mcp.json in current directory
+    if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
         report_test "Playwright in Claude Code config" 0
     else
         report_test "Playwright in Claude Code config" 1
@@ -132,9 +133,10 @@ echo ""
 # Test 6: Verify Playwright in Codex config
 echo "Test 6: Verifying Playwright in Codex config"
 if [ "$CODEX_INSTALLED" = true ]; then
-    if [ -f "$HOME/.codex/config.toml" ] && grep -q "playwright" "$HOME/.codex/config.toml" 2>&1; then
+    # Codex uses .codex/config.toml or .mcp.json
+    if [ -f ".codex/config.toml" ] && grep -q "playwright" ".codex/config.toml" 2>&1; then
         report_test "Playwright in Codex config" 0
-    elif [ -f ".codex/config.toml" ] && grep -q "playwright" ".codex/config.toml" 2>&1; then
+    elif [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
         report_test "Playwright in Codex config" 0
     else
         report_test "Playwright in Codex config" 1
@@ -147,7 +149,8 @@ echo ""
 # Test 7: Verify Playwright in OpenCode config
 echo "Test 7: Verifying Playwright in OpenCode config"
 if [ "$OPENCODE_INSTALLED" = true ]; then
-    if [ -f "$HOME/.config/opencode/opencode.json" ] && grep -q "playwright" "$HOME/.config/opencode/opencode.json" 2>&1; then
+    # OpenCode uses .mcp.json for project scope
+    if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
         report_test "Playwright in OpenCode config" 0
     else
         report_test "Playwright in OpenCode config" 1
