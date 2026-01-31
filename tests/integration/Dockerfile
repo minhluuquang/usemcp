@@ -1,0 +1,59 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install required tools and pnpm
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g pnpm
+
+# Create test user
+RUN useradd -m -s /bin/bash testuser
+
+# Switch to test user for npm global installs
+USER testuser
+ENV HOME=/home/testuser
+ENV PATH="/home/testuser/.npm-global/bin:${PATH}"
+
+# Configure npm to use user directory for global packages
+RUN mkdir -p ~/.npm-global && npm config set prefix '~/.npm-global'
+
+# Install real MCP clients globally
+RUN npm install -g \
+    @anthropic-ai/claude-code \
+    @openai/codex \
+    opencode-ai
+
+# Switch back to root for app installation
+USER root
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies using pnpm
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build the project
+RUN pnpm run build
+
+# Install usemcps globally so it's available in PATH
+RUN npm install -g /app
+
+# Copy and set up test scripts
+COPY tests/docker/test-real-agents.sh /usr/local/bin/test-real-agents.sh
+COPY tests/integration/run-all-tests.sh /usr/local/bin/run-all-tests.sh
+RUN chmod +x /usr/local/bin/test-real-agents.sh /usr/local/bin/run-all-tests.sh
+
+# Switch to test user for running tests
+USER testuser
+ENV HOME=/home/testuser
+
+# Default command runs all tests
+CMD ["bash", "/usr/local/bin/run-all-tests.sh"]

@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { adapterList, getAdapter } from '../../src/agents/index.ts';
-import type { AgentAdapter, Scope } from '../../src/types.ts';
+import { adapterList, getAdapter } from '../src/agents/index.ts';
+import type { AgentAdapter } from '../src/types.ts';
 
-describe('Litmus Tests - Agent Adapters', () => {
+describe('Agent Adapters', () => {
   describe('Adapter Interface Compliance', () => {
     const requiredMethods = [
       'detectInstalled',

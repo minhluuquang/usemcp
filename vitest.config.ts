@@ -5,7 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],
-    fileParallelism: false, // Disable parallel execution to avoid shared state issues
+    exclude: ['tests/integration/**'],
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

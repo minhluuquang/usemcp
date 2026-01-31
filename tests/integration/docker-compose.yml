@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  test-cli:
+    build:
+      context: ../..
+      dockerfile: tests/integration/Dockerfile
+    container_name: mcp-test-suite
+    volumes:
+      - ../..:/app
+      - /app/node_modules
+      - test-home:/home/testuser
+    environment:
+      - HOME=/home/testuser
+      - NODE_ENV=test
+    working_dir: /app
+
+volumes:
+  test-home:

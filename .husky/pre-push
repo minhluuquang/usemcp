@@ -2,7 +2,7 @@ echo "🔍 Running pre-push checks..."
 
 # Run tests
 echo "🧪 Running tests..."
-pnpm run test:run
+pnpm test
 
 # Run build
 echo "🔨 Running build..."

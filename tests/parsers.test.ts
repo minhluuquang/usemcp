@@ -3,10 +3,11 @@ import {
   validateServerJson,
   normalizeServerJson,
   parseServerJson,
-} from '../../src/manifests/server-json.ts';
-import type { ServerJsonManifest } from '../../src/manifests/server-json.ts';
+} from '../src/manifests/server-json.ts';
+import type { ServerJsonManifest } from '../src/manifests/server-json.ts';
+import type { StdioTransport, HttpTransport, SseTransport } from '../src/types.ts';
 
-describe('Litmus Tests - Server.json Parsing', () => {
+describe('Server.json Parsing', () => {
   describe('validateServerJson', () => {
     it('should validate a valid stdio manifest', () => {
       const manifest: ServerJsonManifest = {
@@ -99,11 +100,12 @@ describe('Litmus Tests - Server.json Parsing', () => {
       expect(normalized.id).toBe('io.github.user/server');
       expect(normalized.displayName).toBe('io.github.user/server');
       expect(normalized.description).toBe('Test server');
-      expect(normalized.transport.type).toBe('stdio');
-      expect(normalized.transport.command).toBe('npx');
-      expect(normalized.transport.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem']);
-      expect(normalized.transport.env).toEqual({ KEY: 'value' });
-      expect(normalized.transport.cwd).toBe('/tmp');
+      const stdioTransport = normalized.transport as StdioTransport;
+      expect(stdioTransport.type).toBe('stdio');
+      expect(stdioTransport.command).toBe('npx');
+      expect(stdioTransport.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem']);
+      expect(stdioTransport.env).toEqual({ KEY: 'value' });
+      expect(stdioTransport.cwd).toBe('/tmp');
     });
 
     it('should normalize http transport', () => {
@@ -117,9 +119,10 @@ describe('Litmus Tests - Server.json Parsing', () => {
       const normalized = normalizeServerJson(manifest);
 
       expect(normalized.id).toBe('http-server');
-      expect(normalized.transport.type).toBe('http');
-      expect(normalized.transport.url).toBe('https://api.example.com/mcp');
-      expect(normalized.transport.headers).toEqual({ Authorization: 'Bearer token' });
+      const httpTransport = normalized.transport as HttpTransport;
+      expect(httpTransport.type).toBe('http');
+      expect(httpTransport.url).toBe('https://api.example.com/mcp');
+      expect(httpTransport.headers).toEqual({ Authorization: 'Bearer token' });
     });
 
     it('should normalize sse transport', () => {
@@ -131,8 +134,9 @@ describe('Litmus Tests - Server.json Parsing', () => {
 
       const normalized = normalizeServerJson(manifest);
 
-      expect(normalized.transport.type).toBe('sse');
-      expect(normalized.transport.url).toBe('https://events.example.com/sse');
+      const sseTransport = normalized.transport as SseTransport;
+      expect(sseTransport.type).toBe('sse');
+      expect(sseTransport.url).toBe('https://events.example.com/sse');
     });
 
     it('should handle secrets', () => {
@@ -169,7 +173,8 @@ describe('Litmus Tests - Server.json Parsing', () => {
 
       const normalized = normalizeServerJson(manifest);
 
-      expect(normalized.transport.args).toEqual([]);
+      const stdioTransport = normalized.transport as StdioTransport;
+      expect(stdioTransport.args).toEqual([]);
     });
 
     it('should default secrets to empty array', () => {
