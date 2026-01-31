@@ -57,11 +57,11 @@ cd "$TEST_DIR"
 # Test mcp CLI
 MCP_CLI="/app/bin/cli.mjs"
 
-echo "1. Testing mcp --version"
+echo "1. Testing usemcps --version"
 node "$MCP_CLI" --version
 echo ""
 
-echo "2. Testing mcp list (should detect real agents)"
+echo "2. Testing usemcps list (should detect real agents)"
 node "$MCP_CLI" list 2>&1 || true
 echo ""
 
@@ -80,8 +80,8 @@ EOF
 echo "✓ Playwright MCP server config created"
 echo ""
 
-echo "4. Testing mcp add (installing Playwright MCP to detected agents)"
-echo "Command: mcp add ./playwright-mcp --yes"
+echo "4. Testing usemcps add (installing Playwright MCP to detected agents)"
+echo "Command: usemcps add ./playwright-mcp --yes"
 echo ""
 
 # Try to add the server (non-interactively)
@@ -105,7 +105,7 @@ EOF
 }
 echo ""
 
-echo "5. Testing mcp list (should show Playwright MCP installed)"
+echo "5. Testing usemcps list (should show Playwright MCP installed)"
 node "$MCP_CLI" list 2>&1 || true
 echo ""
 
