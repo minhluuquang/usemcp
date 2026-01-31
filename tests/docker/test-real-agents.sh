@@ -40,8 +40,8 @@ echo ""
 if which claude > /dev/null 2>&1; then
     CLAUDE_VERSION=$(claude --version 2>&1 | head -1 || echo 'version unknown')
     echo "✓ Claude Code installed: $CLAUDE_VERSION"
-    mkdir -p "$HOME/.claude"
-    echo '{"initialized": true}' > "$HOME/.claude/config.json"
+    # Claude Code uses ~/.claude.json for config (not ~/.claude/config.json)
+    echo '{"initialized": true}' > "$HOME/.claude.json"
     CLAUDE_INSTALLED=true
 else
     echo "✗ Claude Code not found in PATH"
@@ -116,11 +116,11 @@ else
 fi
 echo ""
 
-# Test 5: Verify Playwright in Claude Code config (user scope: ~/.claude/config.json)
+# Test 5: Verify Playwright in Claude Code config (user scope: ~/.claude.json)
 echo "Test 5: Verifying Playwright in Claude Code config"
 if [ "$CLAUDE_INSTALLED" = true ]; then
-    # Claude Code with user scope uses ~/.claude/config.json
-    if [ -f "$HOME/.claude/config.json" ] && grep -q "playwright" "$HOME/.claude/config.json" 2>&1; then
+    # Claude Code with user scope uses ~/.claude.json
+    if [ -f "$HOME/.claude.json" ] && grep -q "playwright" "$HOME/.claude.json" 2>&1; then
         report_test "Playwright in Claude Code config" 0
     else
         report_test "Playwright in Claude Code config" 1
