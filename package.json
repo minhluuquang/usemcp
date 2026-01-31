@@ -4,6 +4,7 @@
   "description": "MCP server installer CLI",
   "type": "module",
   "bin": {
+    "usemcps": "./bin/cli.mjs",
     "mcp": "./bin/cli.mjs",
     "add-mcp": "./bin/cli.mjs"
   },
