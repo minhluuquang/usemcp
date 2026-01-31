@@ -98,9 +98,9 @@ else
 fi
 echo ""
 
-# Test 3: Install Playwright MCP server
-echo "Test 3: Installing Playwright MCP server"
-if usemcps add --yes playwright -- npx -y @playwright/mcp@latest --headless 2>&1; then
+# Test 3: Install Playwright MCP server with user scope (to test agent-specific configs)
+echo "Test 3: Installing Playwright MCP server (user scope)"
+if usemcps add --yes --scope user playwright -- npx -y @playwright/mcp@latest --headless 2>&1; then
     report_test "Install Playwright MCP" 0
 else
     report_test "Install Playwright MCP" 1
@@ -116,11 +116,11 @@ else
 fi
 echo ""
 
-# Test 5: Verify Playwright in Claude Code config (project scope uses .mcp.json)
+# Test 5: Verify Playwright in Claude Code config (user scope: ~/.claude/config.json)
 echo "Test 5: Verifying Playwright in Claude Code config"
 if [ "$CLAUDE_INSTALLED" = true ]; then
-    # Claude Code with project scope uses .mcp.json in current directory
-    if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
+    # Claude Code with user scope uses ~/.claude/config.json
+    if [ -f "$HOME/.claude/config.json" ] && grep -q "playwright" "$HOME/.claude/config.json" 2>&1; then
         report_test "Playwright in Claude Code config" 0
     else
         report_test "Playwright in Claude Code config" 1
@@ -130,13 +130,11 @@ else
 fi
 echo ""
 
-# Test 6: Verify Playwright in Codex config
+# Test 6: Verify Playwright in Codex config (user scope: ~/.codex/config.toml)
 echo "Test 6: Verifying Playwright in Codex config"
 if [ "$CODEX_INSTALLED" = true ]; then
-    # Codex uses .codex/config.toml or .mcp.json
-    if [ -f ".codex/config.toml" ] && grep -q "playwright" ".codex/config.toml" 2>&1; then
-        report_test "Playwright in Codex config" 0
-    elif [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
+    # Codex with user scope uses ~/.codex/config.toml
+    if [ -f "$HOME/.codex/config.toml" ] && grep -q "playwright" "$HOME/.codex/config.toml" 2>&1; then
         report_test "Playwright in Codex config" 0
     else
         report_test "Playwright in Codex config" 1
@@ -146,11 +144,11 @@ else
 fi
 echo ""
 
-# Test 7: Verify Playwright in OpenCode config
+# Test 7: Verify Playwright in OpenCode config (user scope: ~/.config/opencode/opencode.json)
 echo "Test 7: Verifying Playwright in OpenCode config"
 if [ "$OPENCODE_INSTALLED" = true ]; then
-    # OpenCode uses .mcp.json for project scope
-    if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
+    # OpenCode with user scope uses ~/.config/opencode/opencode.json
+    if [ -f "$HOME/.config/opencode/opencode.json" ] && grep -q "playwright" "$HOME/.config/opencode/opencode.json" 2>&1; then
         report_test "Playwright in OpenCode config" 0
     else
         report_test "Playwright in OpenCode config" 1
@@ -160,12 +158,12 @@ else
 fi
 echo ""
 
-# Test 8: Verify .mcp.json exists in project
-echo "Test 8: Verifying .mcp.json exists in project directory"
-if [ -f ".mcp.json" ] && grep -q "playwright" ".mcp.json" 2>&1; then
-    report_test ".mcp.json exists with Playwright" 0
+# Test 8: Verify lock file tracks the installation
+echo "Test 8: Verifying lock file tracks Playwright installation"
+if [ -f "$HOME/.agents/.mcp-lock.json" ] && grep -q "playwright" "$HOME/.agents/.mcp-lock.json" 2>&1; then
+    report_test "Lock file tracks Playwright" 0
 else
-    report_test ".mcp.json exists with Playwright" 1
+    report_test "Lock file tracks Playwright" 1
 fi
 echo ""
 
