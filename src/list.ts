@@ -87,7 +87,7 @@ export async function runList(options: ListOptions): Promise<void> {
 
   if (!hasOutput) {
     console.log(pc.dim('No MCP servers installed.'));
-    console.log(pc.dim(`Run ${pc.white('mcp add <source>')} to install a server.`));
+    console.log(pc.dim(`Run ${pc.white('usemcps add <source>')} to install a server.`));
   } else {
     console.log();
     console.log(pc.dim(`Total: ${totalServers} server(s)`));

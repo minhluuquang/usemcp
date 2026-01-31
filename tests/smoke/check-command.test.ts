@@ -49,7 +49,7 @@ describe('Smoke Tests - Check Command', () => {
 
     const output = logs.join('\n');
     // The spinner message isn't captured, but the follow-up message should be
-    expect(output).toContain('Install servers with mcp add');
+    expect(output).toContain('Install servers with usemcps add');
   });
 
   it('should list tracked servers', async () => {

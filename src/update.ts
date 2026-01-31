@@ -10,7 +10,7 @@ export async function runUpdate(): Promise<void> {
 
   if (entries.length === 0) {
     s.stop(pc.yellow('No servers tracked in lock file'));
-    console.log(pc.dim('Install servers with mcp add <source>'));
+    console.log(pc.dim('Install servers with usemcps add <source>'));
     return;
   }
 
@@ -20,6 +20,6 @@ export async function runUpdate(): Promise<void> {
   console.log(pc.dim('This feature requires registry API integration'));
   console.log();
   console.log(pc.dim('To update a server, remove and re-add it:'));
-  console.log(pc.dim('  mcp remove <server>'));
-  console.log(pc.dim('  mcp add <source>'));
+  console.log(pc.dim('  usemcps remove <server>'));
+  console.log(pc.dim('  usemcps add <source>'));
 }

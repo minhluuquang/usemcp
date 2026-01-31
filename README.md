@@ -9,26 +9,26 @@ A `skills`-style installer CLI for MCP server configs. Supports Claude Code, Cla
 ## Installation
 
 ```bash
-npx mcp add <source>
+npx usemcps add <source>
 ```
 
 ## Usage
 
 ```bash
 # Add an MCP server
-npx mcp add io.github.user/server
+npx usemcps add io.github.user/server
 
 # List installed servers
-npx mcp list
+npx usemcps list
 
 # Remove a server
-npx mcp remove server-name
+npx usemcps remove server-name
 
 # Check for updates
-npx mcp check
+npx usemcps check
 
 # Update all servers
-npx mcp update
+npx usemcps update
 ```
 
 ## Supported Clients

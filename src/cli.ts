@@ -47,24 +47,26 @@ function showBanner(): void {
   console.log(pc.dim('MCP Server Installer CLI'));
   console.log();
   console.log(
-    `  ${pc.dim('$')}${pc.white(' mcp add')} ${pc.dim('<source>')}     ${pc.dim('Add an MCP server')}`
+    `  ${pc.dim('$')}${pc.white(' usemcps add')} ${pc.dim('<source>')}     ${pc.dim('Add an MCP server')}`
   );
   console.log(
-    `  ${pc.dim('$')}${pc.white(' mcp list')}            ${pc.dim('List installed servers')}`
+    `  ${pc.dim('$')}${pc.white(' usemcps list')}            ${pc.dim('List installed servers')}`
   );
   console.log(
-    `  ${pc.dim('$')}${pc.white(' mcp remove')} ${pc.dim('<name>')}     ${pc.dim('Remove a server')}`
+    `  ${pc.dim('$')}${pc.white(' usemcps remove')} ${pc.dim('<name>')}     ${pc.dim('Remove a server')}`
   );
-  console.log(`  ${pc.dim('$')}${pc.white(' mcp check')}           ${pc.dim('Check for updates')}`);
   console.log(
-    `  ${pc.dim('$')}${pc.white(' mcp update')}          ${pc.dim('Update all servers')}`
+    `  ${pc.dim('$')}${pc.white(' usemcps check')}           ${pc.dim('Check for updates')}`
+  );
+  console.log(
+    `  ${pc.dim('$')}${pc.white(' usemcps update')}          ${pc.dim('Update all servers')}`
   );
   console.log();
 }
 
 function showHelp(): void {
   console.log(`
-${pc.bold('Usage:')} mcp <command> [options]
+${pc.bold('Usage:')} usemcps <command> [options]
 
 ${pc.bold('Commands:')}
   add <source>      Add an MCP server from registry, git, or local path
@@ -95,15 +97,15 @@ ${pc.bold('Options:')}
   --version, -v     Show version number
 
 ${pc.bold('Examples:')}
-  ${pc.dim('$')} mcp add io.github.user/server
-  ${pc.dim('$')} mcp add github.com/user/repo
-  ${pc.dim('$')} mcp add ./local-server
-  ${pc.dim('$')} mcp add user/repo --agent claude-code --scope project
-  ${pc.dim('$')} mcp list
-  ${pc.dim('$')} mcp list --global
-  ${pc.dim('$')} mcp remove my-server
-  ${pc.dim('$')} mcp check
-  ${pc.dim('$')} mcp update
+  ${pc.dim('$')} usemcps add io.github.user/server
+  ${pc.dim('$')} usemcps add github.com/user/repo
+  ${pc.dim('$')} usemcps add ./local-server
+  ${pc.dim('$')} usemcps add user/repo --agent claude-code --scope project
+  ${pc.dim('$')} usemcps list
+  ${pc.dim('$')} usemcps list --global
+  ${pc.dim('$')} usemcps remove my-server
+  ${pc.dim('$')} usemcps check
+  ${pc.dim('$')} usemcps update
 `);
 }
 
@@ -171,7 +173,7 @@ async function main(): Promise<void> {
 
       default:
         console.log(pc.red(`Unknown command: ${command}`));
-        console.log(pc.dim(`Run ${pc.bold('mcp --help')} for usage.`));
+        console.log(pc.dim(`Run ${pc.bold('usemcps --help')} for usage.`));
         process.exit(1);
     }
   } catch (error) {

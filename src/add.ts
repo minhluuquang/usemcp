@@ -44,7 +44,7 @@ export function parseAddOptions(args: string[]): { source: string; options: AddO
   }
 
   if (positional.length === 0) {
-    throw new Error('Source is required. Usage: mcp add <source>');
+    throw new Error('Source is required. Usage: usemcps add <source>');
   }
 
   return { source: positional[0]!, options };

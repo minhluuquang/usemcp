@@ -10,7 +10,7 @@ export async function runCheck(): Promise<void> {
 
   if (entries.length === 0) {
     s.stop(pc.yellow('No servers tracked in lock file'));
-    console.log(pc.dim('Install servers with mcp add <source>'));
+    console.log(pc.dim('Install servers with usemcps add <source>'));
     return;
   }
 
