@@ -1,6 +1,6 @@
 {
   "name": "@leo96/mcp",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "MCP server installer CLI",
   "type": "module",
   "bin": {
