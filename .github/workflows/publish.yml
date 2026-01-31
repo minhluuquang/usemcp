@@ -132,7 +132,6 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.TAG_NAME }}
           files: |
             dist/cli.mjs
-            bin/cli.mjs
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(steps.get_version.outputs.TAG_NAME, '-alpha') || contains(steps.get_version.outputs.TAG_NAME, '-beta') || contains(steps.get_version.outputs.TAG_NAME, '-rc') }}
